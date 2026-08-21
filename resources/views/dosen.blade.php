@@ -25,61 +25,72 @@
     @endif
 
     @if(session('sukses_matkul'))
-    <p style="color: green;"><strong>{{ session('sukses_matkul') }}</strong></p>
-@endif
+        <p style="color: green;"><strong>{{ session('sukses_matkul') }}</strong></p>
+    @endif
 
-<h3>1. Tambah Mata Kuliah Baru</h3>
-<form action="{{ route('dosen.matkul.store') }}" method="POST">
-    @csrf
-    <div>
-        <label>Nama Mata Kuliah:</label><br>
-        <input type="text" name="nama_matkul" placeholder="Contoh: Pemrograman Web" required>
-        <button type="submit">Tambah Matkul</button>
-    </div>
-</form>
+    <h3>1. Tambah Mata Kuliah Baru</h3>
+    <form action="{{ route('dosen.matkul.store') }}" method="POST">
+        @csrf
+        <div>
+            <label>Nama Mata Kuliah:</label><br>
+            <input type="text" name="nama_matkul" placeholder="Contoh: Pemrograman Web" required>
+            <button type="submit">Tambah Matkul</button>
+        </div>
+    </form>
 
-<hr>
+    <hr>
 
-<h4>Daftar Mata Kuliah Kamu:</h4>
-<table border="1" cellpadding="5" cellspacing="0">
-    <thead>
-        <tr>
-            <th>ID Matkul</th>
-            <th>Nama Mata Kuliah</th>
-        </tr>
-    </thead>
-    <tbody>
-        @forelse($matkuls as $m)
-        <tr>
-            <td><strong>{{ $m->id }}</strong></td>
-            <td>{{ $m->nama_matkul ?? $m->nama }}</td>
-        </tr>
-        @empty
-        <tr>
-            <td colspan="2">Belum ada mata kuliah. Silakan buat dulu di atas.</td>
-        </tr>
-        @endforelse
-    </tbody>
-</table>
+    <h4>Daftar Mata Kuliah Kamu:</h4>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <thead>
+            <tr>
+                <th>ID Matkul</th>
+                <th>Nama Mata Kuliah</th>
+            </tr>
+        </thead>
+        <tbody>
+            @forelse($matkuls as $m)
+            <tr>
+                <td><strong>{{ $m->id }}</strong></td>
+                <td>{{ $m->nama_matkul ?? $m->nama }}</td>
+            </tr>
+            @empty
+            <tr>
+                <td colspan="2">Belum ada mata kuliah. Silakan buat dulu di atas.</td>
+            </tr>
+            @endforelse
+        </tbody>
+    </table>
 
-<hr>
-
-
+    <hr>
 
     <!-- Form Buat Tugas Baru -->
     <h3>Buat Tugas Baru</h3>
     <form action="{{ route('dosen.tugas.store') }}" method="POST">
         @csrf
-       <div>
-    <label>Mata Kuliah:</label><br>
-    <select name="id_matkul" required>
-        <option value="">-- Pilih Mata Kuliah --</option>
-        @foreach($matkuls as $m)
-            <option value="{{ $m->id }}">{{ $m->nama_matkul ?? $m->nama ?? 'Matkul ID '.$m->id }}</option>
-        @endforeach
-    </select>
-</div>
+        <div>
+            <label>Mata Kuliah:</label><br>
+            <select name="id_matkul" required>
+                <option value="">-- Pilih Mata Kuliah --</option>
+                @foreach($matkuls as $m)
+                    <option value="{{ $m->id }}">{{ $m->nama_matkul ?? $m->nama ?? 'Matkul ID '.$m->id }}</option>
+                @endforeach
+            </select>
+        </div>
         <br>
+
+        <!-- TAMBAHAN PILIHAN JURUSAN TUJUAN -->
+        <div>
+            <label>Target Jurusan:</label><br>
+            <select name="jurusan_tujuan" required>
+                <option value="">-- Pilih Jurusan Tujuan --</option>
+                <option value="RPL">RPL (Rekayasa Perangkat Lunak)</option>
+                <option value="TKJ">TKJ (Teknik Komputer & Jaringan)</option>
+                <option value="Multimedia">Multimedia</option>
+            </select>
+        </div>
+        <br>
+
         <div>
             <label>Judul Tugas:</label><br>
             <input type="text" name="judul" placeholder="Masukkan judul tugas" required>

@@ -16,8 +16,9 @@ class Tugas extends Model
     'judul',
     'deskripsi',
     'tenggat_waktu',
+    'jurusan_tujuan',
   ];
-  
+
     public function pengguna()
     {
         return $this->belongsTo(Pengguna::class, 'id_pengguna');

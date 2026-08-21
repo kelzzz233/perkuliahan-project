@@ -5,15 +5,16 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthMahasiswaController;
 
-// Route Login Mahasiswa (Terpisah)
-Route::get('/login/mahasiswa', [AuthMahasiswaController::class, 'showLogin'])->name('mahasiswa.login');
-Route::post('/login/mahasiswa', [AuthMahasiswaController::class, 'login']);
-Route::post('/logout/mahasiswa', [AuthMahasiswaController::class, 'logout'])->name('mahasiswa.logout');
-
 // Redirect Halaman Utama
 Route::get('/', function () {
     return redirect()->route('login');
 });
+
+// Route Login & Register Mahasiswa (Terpisah)
+Route::get('/login/mahasiswa', [AuthMahasiswaController::class, 'showLogin'])->name('mahasiswa.login');
+Route::post('/login/mahasiswa', [AuthMahasiswaController::class, 'login'])->name('mahasiswa.login.proses');
+Route::post('/logout/mahasiswa', [AuthMahasiswaController::class, 'logout'])->name('mahasiswa.logout');
+Route::post('/register/mahasiswa', [AuthMahasiswaController::class, 'register'])->name('mahasiswa.register');
 
 // Guest (Belum Login - Untuk Admin & Dosen)
 Route::middleware('guest')->group(function () {

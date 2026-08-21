@@ -151,18 +151,20 @@ class DashboardController extends Controller
     public function storeTugas(Request $request)
     {
         $request->validate([
-            'id_matkul'     => 'required|exists:mata_kuliah,id',
-            'judul'         => 'required|string|max:255',
-            'deskripsi'     => 'nullable|string',
-            'tenggat_waktu' => 'required',
+            'id_matkul'      => 'required|exists:mata_kuliah,id',
+            'judul'          => 'required|string|max:255',
+            'deskripsi'      => 'nullable|string',
+            'tenggat_waktu'  => 'required',
+            'jurusan_tujuan' => 'required',
         ]);
 
         Tugas::create([
-            'id_matkul'     => $request->id_matkul,
-            'id_pengguna'   => Auth::id(),
-            'judul'         => $request->judul,
-            'deskripsi'     => $request->deskripsi ?? '-',
-            'tenggat_waktu' => $request->tenggat_waktu,
+            'id_matkul'      => $request->id_matkul,
+            'id_pengguna'    => Auth::id(),
+            'judul'          => $request->judul,
+            'deskripsi'      => $request->deskripsi ?? '-',
+            'tenggat_waktu'  => $request->tenggat_waktu,
+            'jurusan_tujuan' => $request->jurusan_tujuan,
         ]);
 
         return back()->with('success', 'Tugas berhasil ditambahkan!');
@@ -192,14 +194,12 @@ class DashboardController extends Controller
 
     public function mahasiswaDashboard()
     {
-        $siswaId = Auth::id();
+        $mahasiswa = Auth::guard('mahasiswa')->user();
 
-        $tugas = Tugas::with('mataKuliah')->latest()->get();
-        $pengumpulan = Pengumpulan::where('id_siswa', $siswaId)
-                        ->pluck('id_tugas')
-                        ->toArray();
+        // Pastikan pencarian ini sesuai dengan isi data di database
+        $tugas = \App\Models\Tugas::where('jurusan_tujuan', $mahasiswa->jurusan)->get();
 
-        return view('mahasiswa', compact('tugas', 'pengumpulan'));
+        return view('mahasiswa', compact('tugas', 'mahasiswa'));
     }
 
     // Simpan Pengumpulan Tugas (Mahasiswa)
@@ -214,7 +214,7 @@ class DashboardController extends Controller
 
         Pengumpulan::create([
             'id_tugas'     => $request->id_tugas,
-            'id_siswa'     => Auth::id(),
+            'id_siswa'     => Auth::guard('mahasiswa')->id(),
             'jalur_berkas' => $path,
         ]);
 

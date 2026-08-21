@@ -8,7 +8,7 @@ class Mahasiswa extends Authenticatable
 {
     protected $table = 'pengguna'; // Sesuaikan dengan nama tabel di database kamu
 
-    protected $fillable = ['nama', 'email', 'kata_sandi'];
+    protected $fillable = ['nama', 'email', 'kata_sandi', 'jurusan']; // <--- TAMBAHKAN 'jurusan' DISINI
 
     protected $hidden = ['kata_sandi'];
 

@@ -18,9 +18,6 @@ class AuthMahasiswaController extends Controller
     // Proses Login Mahasiswa (Menggunakan Guard 'mahasiswa')
     public function login(Request $request)
     {
-        // Debugging: Cek data yang dikirim dari form
-        // dd($request->all());
-
         $request->validate([
             'nama' => 'required|string',
             'password' => 'required',
@@ -28,8 +25,6 @@ class AuthMahasiswaController extends Controller
 
         $mhs = Mahasiswa::where('nama', $request->nama)->first();
 
-        // Gunakan pengecekan langsung jika password di database belum di-hash,
-        // atau gunakan Hash::check jika sudah di-hash.
         if ($mhs && ($request->password == $mhs->kata_sandi || Hash::check($request->password, $mhs->kata_sandi))) {
             Auth::guard('mahasiswa')->login($mhs);
             $request->session()->regenerate();
@@ -39,6 +34,27 @@ class AuthMahasiswaController extends Controller
         return back()->withErrors([
             'nama' => 'Nama atau password mahasiswa salah.',
         ])->onlyInput('nama');
+    }
+
+    // TAMBAHKAN FUNGSI INI UNTUK REGISTER MAHASISWA
+   // FUNGSI REGISTER MAHASISWA YANG DIPERBAIKI
+    public function register(Request $request)
+    {
+        $request->validate([
+            'nama'       => 'required|string|max:255',
+            'email'      => 'required|string|email|unique:pengguna,email', // Diubah dari mahasiswa ke pengguna
+            'jurusan'    => 'required|string', // Validasi jurusan wajib diisi
+            'kata_sandi' => 'required|string|min:6',
+        ]);
+
+        Mahasiswa::create([
+            'nama'       => $request->nama,
+            'email'      => $request->email,
+            'jurusan'    => $request->jurusan, // <--- TAMBAHKAN INI AGAR JURUSAN TERSIMPAN
+            'kata_sandi' => Hash::make($request->kata_sandi),
+        ]);
+
+        return redirect()->route('mahasiswa.login')->with('sukses', 'Registrasi mahasiswa berhasil! Silakan login.');
     }
 
     // Proses Logout Mahasiswa
