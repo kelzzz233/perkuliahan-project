@@ -1,0 +1,53 @@
+<?php
+
+use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\AuthMahasiswaController;
+
+// Route Login Mahasiswa (Terpisah)
+Route::get('/login/mahasiswa', [AuthMahasiswaController::class, 'showLogin'])->name('mahasiswa.login');
+Route::post('/login/mahasiswa', [AuthMahasiswaController::class, 'login']);
+Route::post('/logout/mahasiswa', [AuthMahasiswaController::class, 'logout'])->name('mahasiswa.logout');
+
+// Redirect Halaman Utama
+Route::get('/', function () {
+    return redirect()->route('login');
+});
+
+// Guest (Belum Login - Untuk Admin & Dosen)
+Route::middleware('guest')->group(function () {
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+});
+
+// Logout Admin & Dosen
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+// Route khusus Mahasiswa (Menggunakan Guard 'auth:mahasiswa')
+Route::middleware(['auth:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'mahasiswaDashboard'])->name('dashboard');
+    Route::post('/kumpul', [DashboardController::class, 'kumpulTugas'])->name('kumpul');
+});
+
+// Route khusus Dosen
+Route::middleware(['auth', 'peran:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'dosenDashboard'])->name('dashboard');
+    Route::post('/tugas', [DashboardController::class, 'storeTugas'])->name('tugas.store');
+    Route::post('/matkul', [DashboardController::class, 'storeMatkul'])->name('matkul.store');
+    Route::post('/nilai/{id}', [DashboardController::class, 'beriNilai'])->name('nilai');
+});
+
+// Route khusus Admin
+Route::middleware(['auth', 'peran:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'adminDashboard'])->name('dashboard');
+    Route::post('/user/store', [DashboardController::class, 'storeUser'])->name('user.store');
+    Route::put('/user/update/{id}', [DashboardController::class, 'updateUser'])->name('user.update');
+    Route::delete('/user/delete/{id}', [DashboardController::class, 'deleteUser'])->name('user.delete');
+
+    // CRUD Mata Kuliah oleh Admin
+    Route::post('/matkul/store', [DashboardController::class, 'storeMatkulAdmin'])->name('matkul.store');
+    Route::put('/matkul/update/{id}', [DashboardController::class, 'updateMatkul'])->name('matkul.update');
+});
