@@ -659,13 +659,9 @@
 
                                     @if($p->jalur_berkas)
 
-                                        <a
-                                            href="{{ asset('storage/'.$p->jalur_berkas) }}"
-                                            target="_blank"
-                                            class="file-link"
-                                        >
-                                            📎 Lihat Berkas
-                                        </a>
+                                       <a href="{{ $p->jalur_berkas }}" target="_blank" class="file-link">
+    🔗 Buka Link Tugas
+</a>
 
                                     @else
 

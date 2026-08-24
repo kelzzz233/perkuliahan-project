@@ -23,7 +23,6 @@ class DashboardController extends Controller
         return view('admin', compact('users', 'matkuls'));
     }
 
-    // Tambah Akun User (Admin)
     public function storeUser(Request $request)
     {
         $request->validate([
@@ -43,7 +42,6 @@ class DashboardController extends Controller
         return back()->with('sukses', 'Akun pengguna berhasil ditambahkan!');
     }
 
-    // Edit Akun User (Admin)
     public function updateUser(Request $request, $id)
     {
         $user = Pengguna::findOrFail($id);
@@ -58,7 +56,6 @@ class DashboardController extends Controller
         $user->email = $request->email;
         $user->peran = $request->peran;
 
-        // Password opsional diisi saat edit (hanya jika diisi)
         if ($request->filled('kata_sandi')) {
             $user->kata_sandi = Hash::make($request->kata_sandi);
         }
@@ -68,12 +65,10 @@ class DashboardController extends Controller
         return back()->with('sukses', 'Akun pengguna berhasil diperbarui!');
     }
 
-    // Hapus Akun User (Admin)
     public function deleteUser($id)
     {
         $user = Pengguna::findOrFail($id);
 
-        // Mencegah admin menghapus akunnya sendiri yang sedang login
         if ($user->id === Auth::id()) {
             return back()->with('error', 'Anda tidak dapat menghapus akun yang sedang digunakan saat ini!');
         }
@@ -82,7 +77,6 @@ class DashboardController extends Controller
         return back()->with('sukses', 'Akun pengguna berhasil dihapus!');
     }
 
-    // Tambah Mata Kuliah oleh Admin (atau bisa pilih pengajar)
     public function storeMatkulAdmin(Request $request)
     {
         $request->validate([
@@ -98,7 +92,6 @@ class DashboardController extends Controller
         return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
     }
 
-    // Edit Mata Kuliah (Admin)
     public function updateMatkul(Request $request, $id)
     {
         $matkul = MataKuliah::findOrFail($id);
@@ -132,7 +125,6 @@ class DashboardController extends Controller
         return view('dosen', compact('matkuls', 'tugas', 'pengumpulan'));
     }
 
-    // Simpan Mata Kuliah Baru (Dosen mandiri)
     public function storeMatkul(Request $request)
     {
         $request->validate([
@@ -147,7 +139,6 @@ class DashboardController extends Controller
         return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
     }
 
-    // Simpan Tugas Baru (Dosen)
     public function storeTugas(Request $request)
     {
         $request->validate([
@@ -170,7 +161,6 @@ class DashboardController extends Controller
         return back()->with('success', 'Tugas berhasil ditambahkan!');
     }
 
-    // Simpan Nilai & Catatan (Dosen)
     public function beriNilai(Request $request, $id)
     {
         $request->validate([
@@ -195,29 +185,29 @@ class DashboardController extends Controller
     public function mahasiswaDashboard()
     {
         $mahasiswa = Auth::guard('mahasiswa')->user();
-
-        // Pastikan pencarian ini sesuai dengan isi data di database
-        $tugas = \App\Models\Tugas::where('jurusan_tujuan', $mahasiswa->jurusan)->get();
+        $tugas = Tugas::where('jurusan_tujuan', $mahasiswa->jurusan)->get();
 
         return view('mahasiswa', compact('tugas', 'mahasiswa'));
     }
 
-    // Simpan Pengumpulan Tugas (Mahasiswa)
     public function kumpulTugas(Request $request)
     {
+        // Validasi input link/URL tugas
         $request->validate([
-            'id_tugas' => 'required',
-            'berkas'   => 'required|file|mimes:pdf,doc,docx,zip|max:2048',
+            'id_tugas'   => 'required|exists:tugas,id',
+            'link_tugas' => 'required|url',
+        ], [
+            'link_tugas.required' => 'Link tugas wajib diisi.',
+            'link_tugas.url'      => 'Format link tidak valid. Harus diawali dengan http:// atau https://',
         ]);
 
-        $path = $request->file('berkas')->store('tugas_siswa', 'public');
-
+        // Menyimpan link ke database
         Pengumpulan::create([
             'id_tugas'     => $request->id_tugas,
             'id_siswa'     => Auth::guard('mahasiswa')->id(),
-            'jalur_berkas' => $path,
+            'jalur_berkas' => $request->link_tugas,
         ]);
 
-        return back()->with('sukses', 'Tugas berhasil dikirim!');
+        return back()->with('sukses', 'Link tugas berhasil dikirim!');
     }
 }
