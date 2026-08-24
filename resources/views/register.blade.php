@@ -172,7 +172,6 @@
                 <label for="peran">Pilih Peran</label>
                 <select id="peran" name="peran" class="form-control" required>
                     <option value="" disabled selected>-- Pilih Peran --</option>
-                    <option value="mahasiswa">Mahasiswa</option>
                     <option value="dosen">Dosen</option>
                     <option value="admin">Admin</option>
                 </select>
