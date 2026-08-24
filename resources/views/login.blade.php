@@ -49,10 +49,20 @@
 
             <form action="{{ route('login') }}" method="POST" class="space-y-4">
                 @csrf
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Email Kampus</label>
-                    <input type="email" name="email" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition" placeholder="mahasiswa@kampus.ac.id">
-                </div>
+               <div>
+    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">
+        Nama
+    </label>
+
+    <input 
+        type="text" 
+        name="nama" 
+        value="{{ old('nama') }}"
+        required 
+        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition" 
+        placeholder="Masukkan nama"
+    >
+</div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Password</label>

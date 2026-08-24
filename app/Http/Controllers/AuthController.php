@@ -42,37 +42,46 @@ class AuthController extends Controller
     }
 
     // Proses Autentikasi Login (Admin/Dosen)
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+  // Proses Autentikasi Login (Admin/Dosen)
+public function login(Request $request)
+{
+    $request->validate([
+        'nama' => 'required',
+        'password' => 'required',
+    ]);
 
-        // Cek data pengguna di tabel 'pengguna' berdasarkan email
-        $user = Pengguna::where('email', $request->email)->first();
+    // Cari pengguna berdasarkan NAMA
+    $user = Pengguna::where('nama', $request->nama)->first();
 
-        // Verifikasi password dan pastikan rolenya bukan mahasiswa
-        if ($user && Hash::check($request->password, $user->kata_sandi)) {
-            if ($user->peran === 'mahasiswa') {
-                return back()->withErrors(['email' => 'Akun mahasiswa silakan login lewat halaman khusus mahasiswa.']);
-            }
+    // Verifikasi password
+    if ($user && Hash::check($request->password, $user->kata_sandi)) {
 
-            Auth::login($user);
-            $request->session()->regenerate();
-
-            if ($user->peran === 'admin') {
-                return redirect()->route('admin.dashboard');
-            } elseif ($user->peran === 'dosen') {
-                return redirect()->route('dosen.dashboard');
-            }
+        // Mahasiswa login lewat halaman khusus
+        if ($user->peran === 'mahasiswa') {
+            return back()->withErrors([
+                'nama' => 'Akun mahasiswa silakan login lewat halaman khusus mahasiswa.'
+            ]);
         }
 
-        return back()->withErrors([
-            'username' => 'nama atau password salah.',
-        ])->onlyInput('nama');
+        // Login user
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        // Redirect berdasarkan peran
+        if ($user->peran === 'admin') {
+            return redirect()->route('admin.dashboard');
+        }
+
+        if ($user->peran === 'dosen') {
+            return redirect()->route('dosen.dashboard');
+        }
     }
 
+    // Jika login gagal
+    return back()->withErrors([
+        'nama' => 'Nama atau password salah.',
+    ])->onlyInput('nama');
+}
     // Proses Logout (Admin/Dosen)
     public function logout(Request $request)
     {
