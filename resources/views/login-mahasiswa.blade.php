@@ -50,16 +50,7 @@
                     <input type="text" name="nama" value="{{ old('nama') }}" required placeholder="Masukkan Nama Anda" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
                 </div>
 
-                <!-- TAMBAHAN JURUSAN DI LOGIN (Opsional jika ingin divalidasi saat masuk) -->
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Pilih Jurusan</label>
-                    <select name="jurusan" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
-                        <option value="">-- Pilih Jurusan Anda --</option>
-                        <option value="RPL">RPL (Rekayasa Perangkat Lunak)</option>
-                        <option value="TKJ">TKJ (Teknik Komputer & Jaringan)</option>
-                        <option value="Multimedia">Multimedia</option>
-                    </select>
-                </div>
+
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password</label>
