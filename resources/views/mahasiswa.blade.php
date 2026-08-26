@@ -435,48 +435,6 @@
                 </div>
             </div>
 
-            <!-- TAB 2: KRS -->
-            <div id="pane-krs" class="tab-pane">
-                <div class="section-title">Kartu Rencana Studi (KRS) Aktif</div>
-
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>No</th>
-                                <th>Kode MK</th>
-                                <th>Nama Mata Kuliah</th>
-                                <th>Bobot SKS</th>
-                                <th>Semester</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>1</td>
-                                <td><span style="font-family: monospace; font-weight: 600;">MK-001</span></td>
-                                <td><strong>Pemrograman Web</strong></td>
-                                <td>3 SKS</td>
-                                <td>Semester 4</td>
-                            </tr>
-                            <tr>
-                                <td>2</td>
-                                <td><span style="font-family: monospace; font-weight: 600;">MK-002</span></td>
-                                <td><strong>Pendidikan Kewarganegaraan</strong></td>
-                                <td>2 SKS</td>
-                                <td>Semester 4</td>
-                            </tr>
-                            <tr>
-                                <td>3</td>
-                                <td><span style="font-family: monospace; font-weight: 600;">MK-003</span></td>
-                                <td><strong>Bahasa Inggris Lanjutan</strong></td>
-                                <td>2 SKS</td>
-                                <td>Semester 4</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
             <!-- TAB 3: PROFIL MAHASISWA -->
             <div id="pane-biodata" class="tab-pane">
                 <div class="section-title">Informasi Detail Mahasiswa</div>
@@ -512,6 +470,75 @@
 
         </div>
     </div>
+
+
+    <!-- TAB 2: KRS -->
+<div id="pane-krs" class="tab-pane">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div class="section-title" style="margin-bottom: 0;">Kartu Rencana Studi (KRS) Aktif</div>
+        
+        <!-- Badge Informasi Total SKS -->
+        <div style="background: #e0e7ff; color: #3730a3; padding: 8px 16px; border-radius: 8px; font-weight: 600; font-size: 14px;">
+            Total SKS Diambil: {{ $totalSks ?? 0 }} SKS
+        </div>
+    </div>
+
+    <!-- Form Tambah Mata Kuliah ke KRS -->
+    <div style="background: #f8fafc; padding: 15px; border-radius: 10px; margin-bottom: 20px; border: 1px solid #e2e8f0;">
+        <form action="{{ route('mahasiswa.krs.store') }}" method="POST" style="display: flex; gap: 10px; align-items: flex-end;">
+            @csrf
+            <div style="flex: 1;">
+                <label style="display: block; font-size: 13px; font-weight: 600; margin-bottom: 5px; color: #475569;">Pilih Mata Kuliah untuk Ditambah:</label>
+                <select name="id_tugas" class="form-control" required style="width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #cbd5e1;">
+                    <option value="">-- Pilih Mata Kuliah --</option>
+                    @foreach($semuaMatkul as $matkul)
+                        <option value="{{ $matkul->id }}">{{ $matkul->nama_matkul ?? $matkul->nama }} ({{ $matkul->sks ?? 3 }} SKS)</option>
+                    @endforeach
+                </select>
+            </div>
+            <button type="submit" style="background: #4f46e5; color: white; border: none; padding: 9px 20px; border-radius: 6px; font-weight: 600; cursor: pointer;">+ Ambil MK</button>
+        </form>
+    </div>
+
+    <!-- Tabel Daftar KRS -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>NO</th>
+                    <th>KODE MK</th>
+                    <th>NAMA MATA KULIAH</th>
+                    <th>BOBOT SKS</th>
+                    <th>SEMESTER</th>
+                    <th>AKSI</th>
+                </tr>
+            </thead>
+            <tbody>
+                @forelse($krsList as $index => $item)
+                <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td><span style="font-family: monospace; font-weight: 600;">MK-00{{ $index + 1 }}</span></td>
+                    <td><strong>{{ $item->mataKuliah->nama_matkul ?? $item->mataKuliah->nama ?? 'Tidak Diketahui' }}</strong></td>
+                    <td>{{ $item->mataKuliah->sks ?? 3 }} SKS</td>
+                    <td>Semester 1</td>
+                    <td>
+                        <!-- Tombol Hapus KRS -->
+                        <form action="{{ route('mahasiswa.krs.delete', $item->id_krs ?? $item->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus mata kuliah ini dari KRS?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" style="background: #fee2e2; color: #dc2626; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; cursor: pointer;">Hapus</button>
+                        </form>
+                    </td>
+                </tr>
+                @empty
+                <tr>
+                    <td colspan="6" class="empty-state" style="text-align: center; padding: 20px; color: #64748b;">Belum ada data Kartu Rencana Studi (KRS). Silakan ambil mata kuliah di atas.</td>
+                </tr>
+                @endforelse
+            </tbody>
+        </table>
+    </div>
+</div>
 
     <!-- SCRIPT TAB INTERAKTIF -->
     <script>

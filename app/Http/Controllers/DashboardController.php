@@ -9,6 +9,7 @@ use App\Models\Tugas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Krs;
 
 class DashboardController extends Controller
 {
@@ -185,14 +186,24 @@ class DashboardController extends Controller
     public function mahasiswaDashboard()
     {
         $mahasiswa = Auth::guard('mahasiswa')->user();
-        $tugas = Tugas::where('jurusan_tujuan', $mahasiswa->jurusan)->get();
+        $tugas = \App\Models\Tugas::all();
+        
+        // Ambil data KRS khusus milik mahasiswa yang sedang login (berdasarkan id_pengguna)
+        $krsList = Krs::with('mataKuliah')->where('id_pengguna', $mahasiswa->id)->get();
 
-        return view('mahasiswa', compact('tugas', 'mahasiswa'));
+        // Hitung total SKS secara otomatis dari relasi mata kuliah
+        $totalSks = $krsList->sum(function($item) {
+            return $item->mataKuliah->sks ?? 3; // Default 3 SKS jika kosong
+        });
+
+        // Ambil daftar semua mata kuliah untuk pilihan saat menambah KRS
+        $semuaMatkul = MataKuliah::all();
+
+        return view('mahasiswa', compact('mahasiswa', 'tugas', 'krsList', 'totalSks', 'semuaMatkul'));
     }
 
     public function kumpulTugas(Request $request)
     {
-        // Validasi input link/URL tugas
         $request->validate([
             'id_tugas'   => 'required|exists:tugas,id',
             'link_tugas' => 'required|url',
@@ -201,7 +212,6 @@ class DashboardController extends Controller
             'link_tugas.url'      => 'Format link tidak valid. Harus diawali dengan http:// atau https://',
         ]);
 
-        // Menyimpan link ke database
         Pengumpulan::create([
             'id_tugas'     => $request->id_tugas,
             'id_siswa'     => Auth::guard('mahasiswa')->id(),
@@ -209,5 +219,30 @@ class DashboardController extends Controller
         ]);
 
         return back()->with('sukses', 'Link tugas berhasil dikirim!');
+    }
+
+    // Simpan KRS yang dipilih mahasiswa
+    public function storeKrs(Request $request)
+    {
+        $request->validate([
+            'id_tugas' => 'required',
+        ]);
+
+       Krs::create([
+    'id_pengguna' => Auth::guard('mahasiswa')->id(),
+    'id_tugas'    => $request->id_tugas,
+    'semester'    => 1, // Diubah atau diset langsung ke semester 1
+         ]);
+
+        return redirect()->back()->with('success', 'Mata kuliah berhasil ditambahkan ke KRS!');
+    }
+
+    // Hapus KRS
+    public function destroyKrs($id)
+    {
+        $krs = Krs::findOrFail($id);
+        $krs->delete();
+
+        return redirect()->back()->with('success', 'Mata kuliah berhasil dihapus dari KRS.');
     }
 }

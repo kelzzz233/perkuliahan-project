@@ -31,6 +31,10 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'mahasiswaDashboard'])->name('dashboard');
     Route::post('/kumpul', [DashboardController::class, 'kumpulTugas'])->name('kumpul');
+
+    // Route KRS (Sudah dimasukkan ke dalam group mahasiswa)
+    Route::post('/krs/store', [DashboardController::class, 'storeKrs'])->name('krs.store');
+    Route::delete('/krs/delete/{id}', [DashboardController::class, 'destroyKrs'])->name('krs.delete');
 });
 
 // Route khusus Dosen
