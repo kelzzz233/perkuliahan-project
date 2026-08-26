@@ -16,7 +16,7 @@
         <div class="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div>
                 <h1 class="text-2xl font-bold text-gray-800">Dashboard Admin</h1>
-                <p class="text-sm text-gray-500 mt-1">Kelola Pengguna dan Mata Kuliah Sistem E-Learning</p>
+                <p class="text-sm text-gray-500 mt-1">Kelola Pengguna, Mata Kuliah, dan Pengaturan Sistem Akademik</p>
             </div>
             <form action="{{ route('logout') }}" method="POST">
                 @csrf
@@ -35,11 +35,41 @@
                 {{ session('sukses_matkul') }}
             </div>
         @endif
+        @if(session('success'))
+            <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 text-emerald-700 text-sm rounded shadow-sm">
+                {{ session('success') }}
+            </div>
+        @endif
         @if(session('error'))
             <div class="bg-rose-50 border-l-4 border-rose-500 p-4 text-rose-700 text-sm rounded shadow-sm">
                 {{ session('error') }}
             </div>
         @endif
+
+        <!-- ========================================== -->
+        <!-- BAGIAN BARU: PENGATURAN STATUS KRS (ON/OFF) -->
+        <!-- ========================================== -->
+        <div class="bg-gradient-to-r from-indigo-900 to-blue-900 p-6 rounded-2xl shadow-lg text-white flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="space-y-1 text-center md:text-left">
+                <span class="bg-blue-500/30 text-blue-200 text-xs font-semibold px-3 py-1 rounded-full border border-blue-400/30">Kontrol Akademik</span>
+                <h2 class="text-xl font-bold tracking-tight">Status Pengisian KRS Mahasiswa</h2>
+                <p class="text-blue-100/80 text-sm">Buka atau tutup akses mahasiswa untuk melakukan tambah/edit Kartu Rencana Studi.</p>
+            </div>
+
+            <form action="{{ route('admin.update-krs') }}" method="POST" class="flex items-center gap-3 bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-md w-full md:w-auto justify-end">
+                @csrf
+                @method('PUT')
+                
+                <select name="status_krs" class="bg-gray-900 text-white border border-gray-700 rounded-lg px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400">
+                    <option value="1" {{ isset($statusKrs) && $statusKrs == 1 ? 'selected' : '' }}>🟢 Buka (Aktif)</option>
+                    <option value="0" {{ isset($statusKrs) && $statusKrs == 0 ? 'selected' : '' }}>🔴 Tutup (Non-Aktif)</option>
+                </select>
+
+                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-semibold transition shadow-md whitespace-nowrap">
+                    Simpan Status
+                </button>
+            </form>
+        </div>
 
         <!-- ========================================== -->
         <!-- BAGIAN 1: KELOLA PENGGUNA -->

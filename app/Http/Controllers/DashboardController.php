@@ -9,6 +9,7 @@ use App\Models\Tugas;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
 use App\Models\Krs;
 
 class DashboardController extends Controller
@@ -21,7 +22,12 @@ class DashboardController extends Controller
     {
         $users = Pengguna::all();
         $matkuls = MataKuliah::with('pengajar')->get();
-        return view('admin', compact('users', 'matkuls'));
+        
+        // Ambil status KRS dari database untuk dikirim ke view admin
+        $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
+        $statusKrs = $settingKrs ? $settingKrs->value : 1; // Default 1 (Buka) jika belum diset
+
+        return view('admin', compact('users', 'matkuls', 'statusKrs'));
     }
 
     public function storeUser(Request $request)
@@ -110,6 +116,21 @@ class DashboardController extends Controller
         return back()->with('sukses_matkul', 'Mata Kuliah berhasil diperbarui!');
     }
 
+    // FUNGSI UPDATE STATUS KRS YANG DIPINDAHKAN KE DALAM CLASS
+    public function updateStatusKrs(Request $request)
+    {
+        $request->validate([
+            'status_krs' => 'required|in:0,1', // 0 untuk Tutup, 1 untuk Buka
+        ]);
+
+        DB::table('settings')->updateOrInsert(
+            ['key' => 'status_krs'],
+            ['value' => $request->status_krs]
+        );
+
+        return back()->with('sukses', 'Status KRS berhasil diperbarui!');
+    }
+
 
     // ==========================================
     // BAGIAN DOSEN
@@ -184,23 +205,24 @@ class DashboardController extends Controller
     // ==========================================
 
     public function mahasiswaDashboard()
-    {
-        $mahasiswa = Auth::guard('mahasiswa')->user();
-        $tugas = \App\Models\Tugas::all();
-        
-        // Ambil data KRS khusus milik mahasiswa yang sedang login (berdasarkan id_pengguna)
-        $krsList = Krs::with('mataKuliah')->where('id_pengguna', $mahasiswa->id)->get();
+{
+    // Ambil data mahasiswa yang sedang login
+    $mahasiswa = Auth::guard('mahasiswa')->user();
+    
+    // Ambil tugas yang jurusannya 'Semua' ATAU sama persis dengan jurusan mahasiswa yang login
+    $tugas = \App\Models\Tugas::where('jurusan_tujuan', 'Semua')
+              ->orWhere('jurusan_tujuan', $mahasiswa->jurusan)
+              ->get();
 
-        // Hitung total SKS secara otomatis dari relasi mata kuliah
-        $totalSks = $krsList->sum(function($item) {
-            return $item->mataKuliah->sks ?? 3; // Default 3 SKS jika kosong
-        });
+    // Data pendukung lainnya (seperti KRS, dll)
+    $semuaMatkul = \App\Models\MataKuliah::all();
+    $krsList = \App\Models\Krs::where('id_pengguna', $mahasiswa->id)->get();
+    $totalSks = $krsList->sum(function($item) {
+        return $item->mataKuliah->sks ?? 3;
+    });
 
-        // Ambil daftar semua mata kuliah untuk pilihan saat menambah KRS
-        $semuaMatkul = MataKuliah::all();
-
-        return view('mahasiswa', compact('mahasiswa', 'tugas', 'krsList', 'totalSks', 'semuaMatkul'));
-    }
+    return view('mahasiswa', compact('mahasiswa', 'tugas', 'semuaMatkul', 'krsList', 'totalSks'));
+}
 
     public function kumpulTugas(Request $request)
     {
@@ -221,28 +243,59 @@ class DashboardController extends Controller
         return back()->with('sukses', 'Link tugas berhasil dikirim!');
     }
 
-    // Simpan KRS yang dipilih mahasiswa
     public function storeKrs(Request $request)
     {
+        $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
+        $statusKrs = $settingKrs ? $settingKrs->value : 1;
+
+        if ($statusKrs == 0) {
+            return redirect()->back()->with('error', 'Maaf, periode pengisian KRS sedang ditutup oleh Admin.');
+        }
+
         $request->validate([
             'id_tugas' => 'required',
         ]);
 
-       Krs::create([
-    'id_pengguna' => Auth::guard('mahasiswa')->id(),
-    'id_tugas'    => $request->id_tugas,
-    'semester'    => 1, // Diubah atau diset langsung ke semester 1
-         ]);
+        Krs::create([
+            'id_pengguna' => Auth::guard('mahasiswa')->id(),
+            'id_tugas'    => $request->id_tugas,
+            'semester'    => 1,
+        ]);
 
         return redirect()->back()->with('success', 'Mata kuliah berhasil ditambahkan ke KRS!');
     }
 
-    // Hapus KRS
-    public function destroyKrs($id)
+   public function destroyKrs($id)
     {
+        $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
+        $statusKrs = $settingKrs ? $settingKrs->value : 1;
+
+        if ($statusKrs == 0) {
+            return redirect()->back()->with('error', 'Maaf, periode pengisian/perubahan KRS sedang ditutup oleh Admin.');
+        }
+
         $krs = Krs::findOrFail($id);
         $krs->delete();
 
         return redirect()->back()->with('success', 'Mata kuliah berhasil dihapus dari KRS.');
     }
-}
+
+    // === TEMPELKAN FUNGSI INI DI SINI (MASIH DI DALAM CLASS) ===
+    public function lihatBerkas($id)
+    {
+        $p = Pengumpulan::findOrFail($id);
+        
+        if (filter_var($p->jalur_berkas, FILTER_VALIDATE_URL)) {
+            return redirect()->away($p->jalur_berkas);
+        }
+
+        $path = storage_path('app/public/' . $p->jalur_berkas);
+        
+        if (!file_exists($path)) {
+            abort(404, 'Berkas fisik tidak ditemukan di server.');
+        }
+
+        return response()->file($path);
+    }
+
+} // <--- KURUNG KURAWAL PENUTUP CLASS DashboardController HANYA ADA SATU DI PALING BAWAH FILE

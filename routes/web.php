@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthMahasiswaController;
+use App\Http\Controllers\Admin\SettingController; 
+use App\Http\Controllers\DosenController;
 
 // Redirect Halaman Utama
 Route::get('/', function () {
@@ -55,4 +57,13 @@ Route::middleware(['auth', 'peran:admin'])->prefix('admin')->name('admin.')->gro
     // CRUD Mata Kuliah oleh Admin
     Route::post('/matkul/store', [DashboardController::class, 'storeMatkulAdmin'])->name('matkul.store');
     Route::put('/matkul/update/{id}', [DashboardController::class, 'updateMatkul'])->name('matkul.update');
+
+    // === TAMBAHAN UNTUK PENGATURAN STATUS KRS ===
+    Route::get('/settings', [SettingController::class, 'index'])->name('settings');
+    Route::put('/settings/krs', [SettingController::class, 'updateKrs'])->name('update-krs');
 });
+
+
+Route::get('/dosen/berkas/{id}', [DashboardController::class, 'lihatBerkas'])
+    ->name('dosen.berkas.lihat')
+    ->middleware('auth');
