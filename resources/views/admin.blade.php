@@ -222,38 +222,46 @@
     <!-- ========================================== -->
 
     <!-- Modal Tambah User -->
-    <div id="modalTambahUser" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
-        <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl">
-            <h3 class="text-xl font-bold mb-4">Tambah Pengguna Baru</h3>
-            <form action="{{ route('admin.user.store') }}" method="POST" class="space-y-4">
-                @csrf
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Nama Lengkap</label>
-                    <input type="text" name="nama" required class="w-full border rounded-lg px-3 py-2">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Email</label>
-                    <input type="email" name="email" required class="w-full border rounded-lg px-3 py-2">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Password</label>
-                    <input type="password" name="kata_sandi" required class="w-full border rounded-lg px-3 py-2">
-                </div>
-                <div>
-                    <label class="block text-sm font-semibold mb-1">Peran</label>
-                    <select name="peran" required class="w-full border rounded-lg px-3 py-2">
-                        <option value="mahasiswa">Mahasiswa</option>
-                        <option value="dosen">Dosen</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                </div>
-                <div class="flex justify-end space-x-2 mt-6">
-                    <button type="button" onclick="toggleModal('modalTambahUser')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-300">Batal</button>
-                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">Simpan Data</button>
-                </div>
-            </form>
-        </div>
+    <!-- Modal Tambah User -->
+<div id="modalTambahUser" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl">
+        <h3 class="text-xl font-bold mb-4">Tambah Pengguna Baru</h3>
+        
+        <form action="{{ route('admin.user.store') }}" method="POST" class="space-y-4">
+            @csrf
+            <div>
+                <label class="block text-sm font-semibold mb-1">Nama Lengkap</label>
+                <input type="text" name="nama" value="{{ old('nama') }}" required class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-1">Email</label>
+                <input type="email" name="email" value="{{ old('email') }}" required class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-sm font-semibold mb-1">Password (Minimal 6 karakter)</label>
+                <input type="password" name="kata_sandi" required class="w-full border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+
+            <div>
+                <label class="block text-sm font-semibold mb-1">Peran</label>
+                <input type="text" name="jurusan" required class="w-full border rounded-lg px-3 py-2">
+            </div>
+
+            <div class="flex justify-end space-x-2 mt-6">
+                <button type="button" onclick="toggleModal('modalTambahUser')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-300">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">Simpan Data</button>
+            </div>
+        </form>
     </div>
+</div>
+
+            <div class="flex justify-end space-x-2 mt-6">
+                <button type="button" onclick="toggleModal('modalTambahUser')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-300">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">Simpan Data</button>
+            </div>
+        </form>
+    </div>
+</div>
 
     <!-- Modal Tambah Matkul -->
     <div id="modalTambahMatkul" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">

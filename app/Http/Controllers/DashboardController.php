@@ -30,26 +30,26 @@ class DashboardController extends Controller
         return view('admin', compact('users', 'matkuls', 'statusKrs'));
     }
 
-    public function storeUser(Request $request)
-    {
-        $request->validate([
-            'nama' => 'required|string|max:255',
-            'email' => 'required|string|email|unique:pengguna,email',
-            'kata_sandi' => 'required|string|min:6',
-            'peran' => 'required|in:mahasiswa,dosen,admin',
-        ]);
+ public function storeUser(Request $request)
+{
+    $request->validate([
+        'nama' => 'required|string|max:255',
+        'email' => 'required|string|email|unique:pengguna,email',
+        'kata_sandi' => 'required|string|min:6',
+        'peran' => 'required|in:mahasiswa,dosen,admin',
+        'jurusan' => 'required|string|max:255', // Tambahkan ini
+    ]);
 
-        Pengguna::create([
-            'nama' => $request->nama,
-            'email' => $request->email,
-            'kata_sandi' => Hash::make($request->kata_sandi),
-            'peran' => $request->peran,
-        ]);
+    Pengguna::create([
+        'nama' => $request->nama,
+        'email' => $request->email,
+        'kata_sandi' => Hash::make($request->kata_sandi),
+        'peran' => $request->peran,
+        'jurusan' => $request->jurusan, // Tambahkan ini
+    ]);
 
-        return back()->with('sukses', 'Akun pengguna berhasil ditambahkan!');
-    }
-
-    public function updateUser(Request $request, $id)
+    return redirect()->back()->with('success', 'Pengguna berhasil ditambahkan!');
+}    public function updateUser(Request $request, $id)
     {
         $user = Pengguna::findOrFail($id);
 
