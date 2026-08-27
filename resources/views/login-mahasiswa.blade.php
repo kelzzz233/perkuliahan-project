@@ -26,7 +26,7 @@
             <!-- Tombol Pilihan Tab (Masuk / Daftar) -->
             <div class="flex border-b mb-6">
                 <button @click="tab = 'login'" :class="tab === 'login' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-400'" class="w-1/2 pb-2 font-semibold text-sm transition">Masuk</button>
-                <button @click="tab = 'register'" :class="tab === 'register' ? 'border-b-2 border-indigo-600 text-indigo-600' : 'text-gray-400'" class="w-1/2 pb-2 font-semibold text-sm transition">Daftar Akun</button>
+               
             </div>
 
             <!-- Notifikasi Sukses / Error -->
@@ -61,39 +61,6 @@
                 </button>
             </form>
 
-            <!-- FORM REGISTER -->
-            <form x-show="tab === 'register'" action="{{ route('mahasiswa.register') }}" method="POST" class="space-y-4" style="display: none;">
-                @csrf
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Nama Lengkap</label>
-                    <input type="text" name="nama" required placeholder="Nama Lengkap Anda" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Email</label>
-                    <input type="email" name="email" required placeholder="email@student.com" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Pilih Jurusan</label>
-                    <select name="jurusan" required class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none bg-white">
-                        <option value="">-- Pilih Jurusan --</option>
-                        <option value="RPL">RPL (Rekayasa Perangkat Lunak)</option>
-                        <option value="TKJ">TKJ (Teknik Komputer & Jaringan)</option>
-                        <option value="Multimedia">Multimedia</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Password (Kata Sandi)</label>
-                    <input type="password" name="kata_sandi" required placeholder="Minimal 6 karakter" class="w-full border rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 outline-none">
-                </div>
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-lg text-sm transition">
-                    Daftar Sekarang
-                </button>
-            </form>
-
-        </div>
-    </div>
-
+           
 </body>
 </html>
