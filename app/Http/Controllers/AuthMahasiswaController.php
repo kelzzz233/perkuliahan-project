@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Mahasiswa;
+use App\Models\Pengguna; // <-- 1. Tambahkan import Model Pengguna di sini
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -15,52 +16,37 @@ class AuthMahasiswaController extends Controller
         return view('login-mahasiswa');
     }
 
-    // Proses Login Mahasiswa (Menggunakan Guard 'mahasiswa')
+    // 2. Ubah nama fungsi dari 'prosesLogin' menjadi 'login' agar cocok dengan Route
     public function login(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string',
-            'password' => 'required',
+            'nim' => 'required|string',
+            'password' => 'required|string',
         ]);
 
-        $mhs = Mahasiswa::where('nama', $request->nama)->first();
+        // Cari pengguna berdasarkan kolom nim dan peran mahasiswa
+        $user = Pengguna::where('nim', $request->nim)
+                        ->where('peran', 'mahasiswa')
+                        ->first();
 
-        if ($mhs && ($request->password == $mhs->kata_sandi || Hash::check($request->password, $mhs->kata_sandi))) {
-            Auth::guard('mahasiswa')->login($mhs);
-            $request->session()->regenerate();
-            return redirect()->route('mahasiswa.dashboard');
-        }
+       if ($user && Hash::check($request->password, $user->kata_sandi)) {
+    // Gunakan guard mahasiswa agar sesuai dengan middleware web.php kamu
+    Auth::guard('mahasiswa')->login($user);
+    
+    // Gunakan route() dengan nama rute yang benar, bukan string URL pakai titik
+    return redirect()->route('mahasiswa.dashboard')->with('sukses', 'Berhasil masuk!');
+}
 
         return back()->withErrors([
-            'nama' => 'Nama atau password mahasiswa salah.',
-        ])->onlyInput('nama');
+            'nim' => 'NIM atau password mahasiswa salah.',
+        ])->withInput();
     }
 
-    // TAMBAHKAN FUNGSI INI UNTUK REGISTER MAHASISWA
-   // FUNGSI REGISTER MAHASISWA YANG DIPERBAIKI
-    public function register(Request $request)
-    {
-        $request->validate([
-            'nama'       => 'required|string|max:255',
-            'email'      => 'required|string|email|unique:pengguna,email', // Diubah dari mahasiswa ke pengguna
-            'jurusan'    => 'required|string', // Validasi jurusan wajib diisi
-            'kata_sandi' => 'required|string|min:6',
-        ]);
-
-        Mahasiswa::create([
-            'nama'       => $request->nama,
-            'email'      => $request->email,
-            'jurusan'    => $request->jurusan, // <--- TAMBAHKAN INI AGAR JURUSAN TERSIMPAN
-            'kata_sandi' => Hash::make($request->kata_sandi),
-        ]);
-
-        return redirect()->route('mahasiswa.login')->with('sukses', 'Registrasi mahasiswa berhasil! Silakan login.');
-    }
 
     // Proses Logout Mahasiswa
     public function logout(Request $request)
     {
-        Auth::guard('mahasiswa')->logout();
+        Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

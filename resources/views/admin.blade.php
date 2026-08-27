@@ -234,6 +234,12 @@
                 <label class="block text-sm font-semibold mb-1">Nama Lengkap</label>
                 <input type="text" name="nama" required class="w-full border rounded-lg px-3 py-2">
             </div>
+
+             <div>
+    <label class="block text-sm font-semibold mb-1">NIM MAHASISWA</label>
+    <input type="text" name="nim" class="w-full border rounded-lg px-3 py-2" placeholder="Masukkan NIM atau NIP (Opsional)">
+</div>
+
             <div>
                 <label class="block text-sm font-semibold mb-1">Email</label>
                 <input type="email" name="email" required class="w-full border rounded-lg px-3 py-2">

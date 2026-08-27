@@ -34,18 +34,20 @@ public function storeUser(Request $request)
 {
     $request->validate([
         'nama' => 'required|string|max:255',
+        'nim' => 'nullable|string|max:50',
         'email' => 'required|string|email|unique:pengguna,email',
         'kata_sandi' => 'required|string|min:6',
         'peran' => 'required|in:mahasiswa,dosen,admin',
-        'jurusan' => 'nullable|string|max:255', // <-- Ubah jadi nullable di sini
+        'jurusan' => 'nullable|string|max:255',
     ]);
 
     Pengguna::create([
         'nama' => $request->nama,
+        'nim' => $request->nim,
         'email' => $request->email,
         'kata_sandi' => Hash::make($request->kata_sandi),
         'peran' => $request->peran,
-        'jurusan' => $request->jurusan,
+        'jurusan' => $request->jurusan ?? '-',
     ]);
 
     return redirect()->back()->with('success', 'Pengguna berhasil ditambahkan!');

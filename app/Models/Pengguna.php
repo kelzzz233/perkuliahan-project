@@ -12,7 +12,14 @@ class Pengguna extends Authenticatable
 {
     use Notifiable;
     protected $table = 'pengguna';
-    protected $fillable = ['nama', 'email', 'kata_sandi', 'peran','jurusan'];
+    protected $fillable = [
+    'nama',
+    'nim', 
+    'email',
+    'kata_sandi',
+    'peran',
+    'jurusan',
+];
     protected $hidden = ['kata_sandi'];
 
     public function getAuthPassword() {
