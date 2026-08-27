@@ -384,9 +384,9 @@
             box-shadow: 0 10px 20px rgba(99, 102, 241, 0.2);
         }
 
-        .biodata-details { display: flex; flex-direction: column; gap: 16px; }
+        .biodata-details { display: flex; flex-direction: column; gap: 16px; width: 100%; margin: 0; }
         .biodata-item { display: flex; border-bottom: 1px solid var(--border); padding-bottom: 14px; }
-        .biodata-label { width: 180px; font-weight: 700; color: var(--text-muted); font-size: 13px; }
+        .biodata-label { width: 180px; font-weight: 700; color: var(--text-muted); font-size: 13px; display: flex; align-items: center; }
         .biodata-val { font-weight: 700; color: var(--text-main); font-size: 14px; }
 
         .empty-state { text-align: center; padding: 50px; color: var(--text-muted); font-style: italic; font-weight: 500; }
@@ -602,34 +602,50 @@
 
             <!-- TAB 3: PROFIL MAHASISWA -->
             <div id="pane-biodata" class="tab-pane">
-                <div class="section-title">Informasi Detail Mahasiswa</div>
+                <div class="section-title">Informasi Detail & Perbarui Profil Mahasiswa</div>
 
                 <div class="biodata-card">
                     <div class="biodata-avatar">
                         {{ strtoupper(substr($mahasiswa->nama, 0, 2)) }}
                     </div>
-                    <div class="biodata-details">
-                        <div class="biodata-item">
+                    
+                    <!-- Form untuk memperbarui Nama dan NIM -->
+                    <form action="{{ route('mahasiswa.profil.update') }}" method="POST" class="biodata-details">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="biodata-item" style="align-items: center;">
                             <div class="biodata-label">Nama Lengkap</div>
-                            <div class="biodata-val">{{ $mahasiswa->nama }}</div>
+                            <div class="biodata-val" style="flex: 1;">
+                                <input type="text" name="nama" value="{{ old('nama', $mahasiswa->nama) }}" class="upload-input" required>
+                            </div>
                         </div>
+
+                        <div class="biodata-item" style="align-items: center;">
+                            <div class="biodata-label">NIM / ID Mahasiswa</div>
+                            <div class="biodata-val" style="flex: 1;">
+                                <input type="text" name="nim" value="{{ old('nim', $mahasiswa->nim) }}" class="upload-input" required>
+                            </div>
+                        </div>
+
                         <div class="biodata-item">
                             <div class="biodata-label">Jurusan / Program Studi</div>
-                            <div class="biodata-val">{{ $mahasiswa->jurusan ?? 'Umum' }}</div>
+                            <div class="biodata-val" style="padding-top: 8px;">{{ $mahasiswa->jurusan ?? 'Umum' }}</div>
                         </div>
-                        <div class="biodata-item">
-                            <div class="biodata-label">NIM / ID Mahasiswa</div>
-                            <div class="biodata-val">{{ $mahasiswa->id ?? '-' }}</div>
-                        </div>
+
                         <div class="biodata-item">
                             <div class="biodata-label">Status Akademik</div>
-                            <div class="biodata-val"><span class="badge badge-success">Aktif Berstudi</span></div>
+                            <div class="biodata-val" style="padding-top: 8px;"><span class="badge badge-success">Aktif Berstudi</span></div>
                         </div>
-                        <div class="biodata-item" style="border-bottom: none; padding-bottom: 0;">
+
+                        <div class="biodata-item" style="border-bottom: none; padding-bottom: 0; align-items: center;">
                             <div class="biodata-label">Tahun Akademik</div>
-                            <div class="biodata-val">2025/2026 Genap</div>
+                            <div class="biodata-val" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                                <span>2025/2026 Genap</span>
+                                <button type="submit" class="btn-action" style="margin-top: 0;">Simpan Perubahan</button>
+                            </div>
                         </div>
-                    </div>
+                    </form>
                 </div>
             </div>
 

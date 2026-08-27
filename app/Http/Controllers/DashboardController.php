@@ -23,35 +23,35 @@ class DashboardController extends Controller
         $users = Pengguna::all();
         $matkuls = MataKuliah::with('pengajar')->get();
         
-        // Ambil status KRS dari database untuk dikirim ke view admin
         $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
-        $statusKrs = $settingKrs ? $settingKrs->value : 1; // Default 1 (Buka) jika belum diset
+        $statusKrs = $settingKrs ? $settingKrs->value : 1;
 
         return view('admin', compact('users', 'matkuls', 'statusKrs'));
     }
 
-public function storeUser(Request $request)
-{
-    $request->validate([
-        'nama' => 'required|string|max:255',
-        'nim' => 'nullable|string|max:50',
-        'email' => 'required|string|email|unique:pengguna,email',
-        'kata_sandi' => 'required|string|min:6',
-        'peran' => 'required|in:mahasiswa,dosen,admin',
-        'jurusan' => 'nullable|string|max:255',
-    ]);
+    public function storeUser(Request $request)
+    {
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'nim' => 'nullable|string|max:50',
+            'email' => 'required|string|email|unique:pengguna,email',
+            'kata_sandi' => 'required|string|min:6',
+            'peran' => 'required|in:mahasiswa,dosen,admin',
+            'jurusan' => 'nullable|string|max:255',
+        ]);
 
-    Pengguna::create([
-        'nama' => $request->nama,
-        'nim' => $request->nim,
-        'email' => $request->email,
-        'kata_sandi' => Hash::make($request->kata_sandi),
-        'peran' => $request->peran,
-        'jurusan' => $request->jurusan ?? '-',
-    ]);
+        Pengguna::create([
+            'nama' => $request->nama,
+            'nim' => $request->nim,
+            'email' => $request->email,
+            'kata_sandi' => Hash::make($request->kata_sandi),
+            'peran' => $request->peran,
+            'jurusan' => $request->jurusan ?? '-',
+        ]);
 
-    return redirect()->back()->with('success', 'Pengguna berhasil ditambahkan!');
-}
+        return redirect()->back()->with('success', 'Pengguna berhasil ditambahkan!');
+    }
+
     public function updateUser(Request $request, $id)
     {
         $user = Pengguna::findOrFail($id);
@@ -119,11 +119,10 @@ public function storeUser(Request $request)
         return back()->with('sukses_matkul', 'Mata Kuliah berhasil diperbarui!');
     }
 
-    // FUNGSI UPDATE STATUS KRS YANG DIPINDAHKAN KE DALAM CLASS
     public function updateStatusKrs(Request $request)
     {
         $request->validate([
-            'status_krs' => 'required|in:0,1', // 0 untuk Tutup, 1 untuk Buka
+            'status_krs' => 'required|in:0,1',
         ]);
 
         DB::table('settings')->updateOrInsert(
@@ -208,24 +207,21 @@ public function storeUser(Request $request)
     // ==========================================
 
     public function mahasiswaDashboard()
-{
-    // Ambil data mahasiswa yang sedang login
-    $mahasiswa = Auth::guard('mahasiswa')->user();
-    
-    // Ambil tugas yang jurusannya 'Semua' ATAU sama persis dengan jurusan mahasiswa yang login
-    $tugas = \App\Models\Tugas::where('jurusan_tujuan', 'Semua')
-              ->orWhere('jurusan_tujuan', $mahasiswa->jurusan)
-              ->get();
+    {
+        $mahasiswa = Auth::guard('mahasiswa')->user();
+        
+        $tugas = \App\Models\Tugas::where('jurusan_tujuan', 'Semua')
+                  ->orWhere('jurusan_tujuan', $mahasiswa->jurusan)
+                  ->get();
 
-    // Data pendukung lainnya (seperti KRS, dll)
-    $semuaMatkul = \App\Models\MataKuliah::all();
-    $krsList = \App\Models\Krs::where('id_pengguna', $mahasiswa->id)->get();
-    $totalSks = $krsList->sum(function($item) {
-        return $item->mataKuliah->sks ?? 3;
-    });
+        $semuaMatkul = \App\Models\MataKuliah::all();
+        $krsList = \App\Models\Krs::where('id_pengguna', $mahasiswa->id)->get();
+        $totalSks = $krsList->sum(function($item) {
+            return $item->mataKuliah->sks ?? 3;
+        });
 
-    return view('mahasiswa', compact('mahasiswa', 'tugas', 'semuaMatkul', 'krsList', 'totalSks'));
-}
+        return view('mahasiswa', compact('mahasiswa', 'tugas', 'semuaMatkul', 'krsList', 'totalSks'));
+    }
 
     public function kumpulTugas(Request $request)
     {
@@ -268,7 +264,7 @@ public function storeUser(Request $request)
         return redirect()->back()->with('success', 'Mata kuliah berhasil ditambahkan ke KRS!');
     }
 
-   public function destroyKrs($id)
+    public function destroyKrs($id)
     {
         $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
         $statusKrs = $settingKrs ? $settingKrs->value : 1;
@@ -283,7 +279,6 @@ public function storeUser(Request $request)
         return redirect()->back()->with('success', 'Mata kuliah berhasil dihapus dari KRS.');
     }
 
-    // === TEMPELKAN FUNGSI INI DI SINI (MASIH DI DALAM CLASS) ===
     public function lihatBerkas($id)
     {
         $p = Pengumpulan::findOrFail($id);
@@ -301,4 +296,22 @@ public function storeUser(Request $request)
         return response()->file($path);
     }
 
-} // <--- KURUNG KURAWAL PENUTUP CLASS DashboardController HANYA ADA SATU DI PALING BAWAH FILE
+    // FUNGSI UPDATE PROFIL MAHASISWA (Sudah dipindahkan ke dalam class)
+    public function updateProfilMahasiswa(Request $request)
+    {
+        $user = Auth::guard('mahasiswa')->user();
+
+        $request->validate([
+            'nama' => 'required|string|max:255',
+            'nim'  => 'required|string|max:50|unique:pengguna,nim,' . $user->id,
+        ]);
+
+        $user->update([
+            'nama' => $request->nama,
+            'nim'  => $request->nim,
+        ]);
+
+        return back()->with('sukses', 'Profil berhasil diperbarui!');
+    }
+
+}

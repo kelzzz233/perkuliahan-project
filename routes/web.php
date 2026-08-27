@@ -34,6 +34,8 @@ Route::middleware(['auth:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->
     Route::get('/dashboard', [DashboardController::class, 'mahasiswaDashboard'])->name('dashboard');
     Route::post('/kumpul', [DashboardController::class, 'kumpulTugas'])->name('kumpul');
 
+    Route::put('/profil/update', [DashboardController::class, 'updateProfilMahasiswa'])->name('profil.update');
+
     // Route KRS (Sudah dimasukkan ke dalam group mahasiswa)
     Route::post('/krs/store', [DashboardController::class, 'storeKrs'])->name('krs.store');
     Route::delete('/krs/delete/{id}', [DashboardController::class, 'destroyKrs'])->name('krs.delete');
