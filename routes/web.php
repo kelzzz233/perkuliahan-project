@@ -33,20 +33,27 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::middleware(['auth:mahasiswa'])->prefix('mahasiswa')->name('mahasiswa.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'mahasiswaDashboard'])->name('dashboard');
     Route::post('/kumpul', [DashboardController::class, 'kumpulTugas'])->name('kumpul');
-
     Route::put('/profil/update', [DashboardController::class, 'updateProfilMahasiswa'])->name('profil.update');
 
-    // Route KRS (Sudah dimasukkan ke dalam group mahasiswa)
+    // Route KRS
     Route::post('/krs/store', [DashboardController::class, 'storeKrs'])->name('krs.store');
     Route::delete('/krs/delete/{id}', [DashboardController::class, 'destroyKrs'])->name('krs.delete');
 });
 
-// Route khusus Dosen
+// Route khusus Dosen (Dipecah per halaman)
 Route::middleware(['auth', 'peran:dosen'])->prefix('dosen')->name('dosen.')->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'dosenDashboard'])->name('dashboard');
-    Route::post('/tugas', [DashboardController::class, 'storeTugas'])->name('tugas.store');
+    Route::get('/matkul', [DashboardController::class, 'dosenMatkulIndex'])->name('matkul');
+    Route::get('/tugas', [DashboardController::class, 'dosenTugasIndex'])->name('tugas');
+    Route::get('/nilai', [DashboardController::class, 'dosenNilaiIndex'])->name('nilai');
+
+    // Proses Simpan / Store
     Route::post('/matkul', [DashboardController::class, 'storeMatkul'])->name('matkul.store');
-    Route::post('/nilai/{id}', [DashboardController::class, 'beriNilai'])->name('nilai');
+    Route::post('/tugas', [DashboardController::class, 'storeTugas'])->name('tugas.store');
+    Route::post('/nilai/{id}', [DashboardController::class, 'beriNilai'])->name('nilai.simpan');
+
+    // Route lihat berkas mahasiswa oleh dosen
+    Route::get('/berkas/{id}', [DashboardController::class, 'lihatBerkas'])->name('berkas.lihat');
 });
 
 // Route khusus Admin
@@ -60,12 +67,7 @@ Route::middleware(['auth', 'peran:admin'])->prefix('admin')->name('admin.')->gro
     Route::post('/matkul/store', [DashboardController::class, 'storeMatkulAdmin'])->name('matkul.store');
     Route::put('/matkul/update/{id}', [DashboardController::class, 'updateMatkul'])->name('matkul.update');
 
-    // === TAMBAHAN UNTUK PENGATURAN STATUS KRS ===
+    // === PENGATURAN STATUS KRS ===
     Route::get('/settings', [SettingController::class, 'index'])->name('settings');
     Route::put('/settings/krs', [SettingController::class, 'updateKrs'])->name('update-krs');
 });
-
-
-Route::get('/dosen/berkas/{id}', [DashboardController::class, 'lihatBerkas'])
-    ->name('dosen.berkas.lihat')
-    ->middleware('auth');

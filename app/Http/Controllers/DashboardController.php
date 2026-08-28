@@ -141,12 +141,34 @@ class DashboardController extends Controller
     public function dosenDashboard()
     {
         $dosenId = Auth::id();
-
         $matkuls = MataKuliah::where('id_pengajar', $dosenId)->get();
-        $tugas = Tugas::where('id_pengguna', $dosenId)->with('mataKuliah')->get();
         $pengumpulan = Pengumpulan::with(['tugas', 'siswa'])->latest()->get();
 
-        return view('dosen', compact('matkuls', 'tugas', 'pengumpulan'));
+        return view('dosen', compact('matkuls', 'pengumpulan'));
+    }
+
+    public function dosenMatkulIndex()
+    {
+        $dosenId = Auth::id();
+        $matkuls = MataKuliah::where('id_pengajar', $dosenId)->get();
+
+        return view('matkul', compact('matkuls'));
+    }
+
+    public function dosenTugasIndex()
+    {
+        $dosenId = Auth::id();
+        $matkuls = MataKuliah::where('id_pengajar', $dosenId)->get();
+        $tugas = Tugas::where('id_pengguna', $dosenId)->with('mataKuliah')->get();
+
+        return view('tugas', compact('matkuls', 'tugas'));
+    }
+
+    public function dosenNilaiIndex()
+    {
+        $pengumpulan = Pengumpulan::with(['tugas', 'siswa'])->latest()->get();
+
+        return view('nilai', compact('pengumpulan'));
     }
 
     public function storeMatkul(Request $request)
@@ -163,27 +185,29 @@ class DashboardController extends Controller
         return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
     }
 
-    public function storeTugas(Request $request)
-    {
-        $request->validate([
-            'id_matkul'      => 'required|exists:mata_kuliah,id',
-            'judul'          => 'required|string|max:255',
-            'deskripsi'      => 'nullable|string',
-            'tenggat_waktu'  => 'required',
-            'jurusan_tujuan' => 'required',
-        ]);
+ public function storeTugas(Request $request)
+{
+    // Validasi agar form wajib diisi dan mencegah data kosong masuk
+    $request->validate([
+        'jurusan_tujuan' => 'required',
+        'id_matkul'      => 'required',
+        'judul'          => 'required',
+        'deskripsi'      => 'required',
+        'tenggat_waktu'  => 'required',
+    ]);
 
-        Tugas::create([
-            'id_matkul'      => $request->id_matkul,
-            'id_pengguna'    => Auth::id(),
-            'judul'          => $request->judul,
-            'deskripsi'      => $request->deskripsi ?? '-',
-            'tenggat_waktu'  => $request->tenggat_waktu,
-            'jurusan_tujuan' => $request->jurusan_tujuan,
-        ]);
+    \App\Models\Tugas::create([
+        'id_pengguna'    => Auth::id(),
+        'id_matkul'      => $request->input('id_matkul'), // Menggunakan input() lebih aman
+        'judul'          => $request->judul,
+        'deskripsi'      => $request->deskripsi,
+        'jurusan_tujuan' => $request->jurusan_tujuan,
+        'tenggat_waktu'  => $request->tenggat_waktu,
+        'status'         => 'pending',
+    ]);
 
-        return back()->with('success', 'Tugas berhasil ditambahkan!');
-    }
+    return redirect()->back()->with('success', 'Tugas berhasil dibuat!');
+}
 
     public function beriNilai(Request $request, $id)
     {
@@ -206,22 +230,30 @@ class DashboardController extends Controller
     // BAGIAN MAHASISWA
     // ==========================================
 
-    public function mahasiswaDashboard()
-    {
-        $mahasiswa = Auth::guard('mahasiswa')->user();
-        
-        $tugas = \App\Models\Tugas::where('jurusan_tujuan', 'Semua')
-                  ->orWhere('jurusan_tujuan', $mahasiswa->jurusan)
-                  ->get();
+   public function mahasiswaDashboard()
+{
+    // 1. Ambil data mahasiswa yang sedang login menggunakan guard 'mahasiswa'
+    $mahasiswa = Auth::guard('mahasiswa')->user();
+    
+    // Ambil teks jurusan mahasiswa, bersihkan spasi, dan ubah ke huruf kecil
+    $jurusanMhs = strtolower(trim($mahasiswa->jurusan ?? ''));
 
-        $semuaMatkul = \App\Models\MataKuliah::all();
-        $krsList = \App\Models\Krs::where('id_pengguna', $mahasiswa->id)->get();
-        $totalSks = $krsList->sum(function($item) {
-            return $item->mataKuliah->sks ?? 3;
-        });
+    // 2. Ambil tugas dengan filter yang fleksibel tapi tetap spesifik
+    $tugas = \App\Models\Tugas::where(function($query) use ($jurusanMhs) {
+        $query->whereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', [$jurusanMhs])
+              ->orWhereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', ['semua'])
+              ->orWhereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', ['-'])
+              ->orWhereNull('jurusan_tujuan');
+    })->get();
 
-        return view('mahasiswa', compact('mahasiswa', 'tugas', 'semuaMatkul', 'krsList', 'totalSks'));
-    }
+    $semuaMatkul = \App\Models\MataKuliah::all();
+    $krsList = \App\Models\Krs::where('id_pengguna', $mahasiswa->id)->get();
+    $totalSks = $krsList->sum(function($item) {
+        return $item->mataKuliah->sks ?? 3;
+    });
+
+    return view('mahasiswa', compact('mahasiswa', 'tugas', 'semuaMatkul', 'krsList', 'totalSks'));
+}
 
     public function kumpulTugas(Request $request)
     {
@@ -296,7 +328,6 @@ class DashboardController extends Controller
         return response()->file($path);
     }
 
-    // FUNGSI UPDATE PROFIL MAHASISWA (Sudah dipindahkan ke dalam class)
     public function updateProfilMahasiswa(Request $request)
     {
         $user = Auth::guard('mahasiswa')->user();
@@ -313,5 +344,4 @@ class DashboardController extends Controller
 
         return back()->with('sukses', 'Profil berhasil diperbarui!');
     }
-
 }

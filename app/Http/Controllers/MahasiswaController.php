@@ -16,15 +16,21 @@ class MahasiswaController extends Controller
         return view('mahasiswa', compact('mahasiswa'));
     }
 
-    public function dashboard()
+   public function dashboard()
 {
-    // 1. Ambil data pengguna yang sedang login dari tabel 'pengguna'
-    $mahasiswa = Auth::user(); // atau Auth::guard('web')->user() tergantung konfigurasi guard kamu
+    // 1. Ambil data pengguna yang sedang login
+   $mahasiswa = Auth::guard('mahasiswa')->user();
 
-    // 2. Pastikan data mahasiswa ada, lalu ambil tugas berdasarkan jurusan mereka
+    // 2. Ambil tugas berdasarkan jurusan mahasiswa atau jika tujuannya 'semua'
     $tugas = [];
     if ($mahasiswa && $mahasiswa->jurusan) {
-        $tugas = Tugas::where('jurusan', $mahasiswa->jurusan)->get();
+        $jurusanMhs = trim(strtolower($mahasiswa->jurusan));
+        
+        $tugas = Tugas::where(function($query) use ($jurusanMhs) {
+            $query->whereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', [$jurusanMhs])
+                  ->orWhereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', ['semua'])
+                  ->orWhereNull('jurusan_tujuan');
+        })->get();
     }
 
     // 3. Ambil data mata kuliah untuk KRS

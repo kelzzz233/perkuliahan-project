@@ -652,6 +652,9 @@
         </div>
     </div>
 
+    <!-- Letakkan ini sementara di dalam file resources/views/mahasiswa.blade.php -->
+
+
     <!-- SCRIPT INTERAKTIF & THEME TOGGLE -->
     <script>
         function switchTab(evt, paneId) {
@@ -683,6 +686,8 @@
             document.documentElement.setAttribute("data-theme", savedTheme);
         });
     </script>
+
+
 
 </body>
 </html>
