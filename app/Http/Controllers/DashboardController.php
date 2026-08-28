@@ -18,15 +18,12 @@ class DashboardController extends Controller
     // BAGIAN ADMIN (Kelola User & Mata Kuliah)
     // ==========================================
 
-  public function adminDashboard()
+public function adminDashboard()
 {
     $users = Pengguna::all();
 
-    // Ambil data mata kuliah beserta relasinya, tapi biarkan dalam bentuk Collection biasa dulu
-    $matkuls = MataKuliah::with('pengajar')->get();
-    
-    // Kelompokkan di sini agar rapi dikirim ke view
-    $groupedMatkuls = $matkuls->groupBy('nama_matkul');
+    // Ambil data mata kuliah, lalu group berdasarkan id_pengajar
+    $groupedMatkuls = MataKuliah::with('pengajar')->get()->groupBy('id_pengajar');
 
     $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
     $statusKrs = $settingKrs ? $settingKrs->value : 1;
