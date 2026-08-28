@@ -18,16 +18,21 @@ class DashboardController extends Controller
     // BAGIAN ADMIN (Kelola User & Mata Kuliah)
     // ==========================================
 
-    public function adminDashboard()
-    {
-        $users = Pengguna::all();
-        $matkuls = MataKuliah::with('pengajar')->get();
-        
-        $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
-        $statusKrs = $settingKrs ? $settingKrs->value : 1;
+  public function adminDashboard()
+{
+    $users = Pengguna::all();
 
-        return view('admin', compact('users', 'matkuls', 'statusKrs'));
-    }
+    // Ambil data mata kuliah beserta relasinya, tapi biarkan dalam bentuk Collection biasa dulu
+    $matkuls = MataKuliah::with('pengajar')->get();
+    
+    // Kelompokkan di sini agar rapi dikirim ke view
+    $groupedMatkuls = $matkuls->groupBy('nama_matkul');
+
+    $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
+    $statusKrs = $settingKrs ? $settingKrs->value : 1;
+
+    return view('admin', compact('users', 'groupedMatkuls', 'statusKrs'));
+}
 
     public function storeUser(Request $request)
     {
@@ -246,7 +251,7 @@ class DashboardController extends Controller
               ->orWhereNull('jurusan_tujuan');
     })->get();
 
-    $semuaMatkul = \App\Models\MataKuliah::all();
+  $semuaMatkul = \App\Models\MataKuliah::all()->unique('nama_matkul');
     $krsList = \App\Models\Krs::where('id_pengguna', $mahasiswa->id)->get();
     $totalSks = $krsList->sum(function($item) {
         return $item->mataKuliah->sks ?? 3;

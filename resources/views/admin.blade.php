@@ -47,7 +47,7 @@
         @endif
 
         <!-- ========================================== -->
-        <!-- BAGIAN BARU: PENGATURAN STATUS KRS (ON/OFF) -->
+        <!-- PENGATURAN STATUS KRS (ON/OFF) -->
         <!-- ========================================== -->
         <div class="bg-gradient-to-r from-indigo-900 to-blue-900 p-6 rounded-2xl shadow-lg text-white flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="space-y-1 text-center md:text-left">
@@ -77,7 +77,6 @@
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-6">
                 <h2 class="text-lg font-bold text-gray-800">Daftar Pengguna</h2>
-                <!-- Tombol Tambah User -->
                 <button onclick="toggleModal('modalTambahUser')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition">+ Tambah Pengguna</button>
             </div>
 
@@ -103,10 +102,8 @@
                                 </span>
                             </td>
                             <td class="p-4 text-center space-x-3">
-                                <!-- Tombol Edit -->
                                 <button onclick="toggleModal('modalEditUser{{ $u->id }}')" class="text-indigo-600 hover:text-indigo-800 font-semibold text-sm">Edit</button>
 
-                                <!-- Tombol Hapus -->
                                 <form action="{{ route('admin.user.delete', $u->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus pengguna ini?')">
                                     @csrf
                                     @method('DELETE')
@@ -115,7 +112,7 @@
                             </td>
                         </tr>
 
-                        <!-- Modal Edit User (Spesifik per baris) -->
+                        <!-- Modal Edit User -->
                         <div id="modalEditUser{{ $u->id }}" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
                             <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl">
                                 <h3 class="text-xl font-bold mb-4">Edit Pengguna</h3>
@@ -156,7 +153,7 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- BAGIAN 2: KELOLA MATA KULIAH -->
+        <!-- BAGIAN 2: KELOLA MATA KULIAH (GROUPED) -->
         <!-- ========================================== -->
         <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
             <div class="flex justify-between items-center mb-6">
@@ -168,49 +165,71 @@
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            <th class="p-4">No</th>
                             <th class="p-4">Nama Mata Kuliah</th>
                             <th class="p-4">Dosen Pengajar</th>
                             <th class="p-4 text-center">Aksi</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-100 text-sm">
-                        @foreach($matkuls as $mk)
-                        <tr class="hover:bg-gray-50/50 transition">
-                            <td class="p-4 font-medium text-gray-900">{{ $mk->nama_matkul }}</td>
-                            <td class="p-4 text-gray-600">{{ $mk->pengajar->nama ?? 'Tidak ada dosen' }}</td>
-                            <td class="p-4 text-center">
-                                <button onclick="toggleModal('modalEditMatkul{{ $mk->id }}')" class="text-indigo-600 hover:text-indigo-800 font-semibold text-sm">Edit</button>
-                            </td>
-                        </tr>
+                   <tbody class="divide-y divide-gray-100 text-sm">
+    @php 
+        $no = 1; 
+    @endphp
+    @foreach($groupedMatkuls as $namaMatkul => $items)
+    <tr class="hover:bg-gray-50/50 transition">
+        <td class="p-4 text-gray-500 font-semibold">{{ $no++ }}</td>
+        <td class="p-4 font-bold text-gray-900">{{ ucwords($namaMatkul) }}</td>
+        <td class="p-4 text-gray-600">
+            <div class="flex flex-col gap-1.5">
+                @foreach($items as $item)
+                    <span class="bg-gray-100 px-3 py-1 rounded-md text-xs font-medium w-fit text-gray-700">
+                        👨‍🏫 {{ optional($item->pengajar)->nama ?? 'Tidak ada dosen' }}
+                    </span>
+                @endforeach
+            </div>
+        </td>
+        <td class="p-4 text-center">
+            <div class="flex flex-col gap-1.5 items-center">
+                @foreach($items as $item)
+                    <button onclick="toggleModal('modalEditMatkul{{ $item->id }}')" class="text-indigo-600 hover:text-indigo-800 font-semibold text-xs bg-indigo-50 px-2.5 py-1 rounded">
+                        Edit ({{ optional($item->pengajar)->nama ?? 'Dosen' }})
+                    </button>
+                @endforeach
+            </div>
+        </td>
+    </tr>
 
-                        <!-- Modal Edit Matkul -->
-                        <div id="modalEditMatkul{{ $mk->id }}" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
-                            <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl">
-                                <h3 class="text-xl font-bold mb-4">Edit Mata Kuliah</h3>
-                                <form action="{{ route('admin.matkul.update', $mk->id) }}" method="POST" class="space-y-4">
-                                    @csrf
-                                    @method('PUT')
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-1">Nama Mata Kuliah</label>
-                                        <input type="text" name="nama_matkul" value="{{ $mk->nama_matkul }}" required class="w-full border rounded-lg px-3 py-2">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-1">Dosen Pengajar</label>
-                                        <select name="id_pengajar" required class="w-full border rounded-lg px-3 py-2">
-                                            @foreach($users->where('peran', 'dosen') as $dosen)
-                                                <option value="{{ $dosen->id }}" {{ $mk->id_pengajar == $dosen->id ? 'selected' : '' }}>{{ $dosen->nama }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="flex justify-end space-x-2 mt-6">
-                                        <button type="button" onclick="toggleModal('modalEditMatkul{{ $mk->id }}')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-300">Batal</button>
-                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700">Simpan Perubahan</button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+    <!-- Modal Edit Matkul (Per Item) -->
+    @foreach($items as $item)
+    <div id="modalEditMatkul{{ $item->id }}" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl">
+            <h3 class="text-xl font-bold mb-4">Edit Mata Kuliah</h3>
+            <form action="{{ route('admin.matkul.update', $item->id) }}" method="POST" class="space-y-4">
+                @csrf
+                @method('PUT')
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Nama Mata Kuliah</label>
+                    <input type="text" name="nama_matkul" value="{{ $item->nama_matkul }}" required class="w-full border rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Dosen Pengajar</label>
+                    <select name="id_pengajar" required class="w-full border rounded-lg px-3 py-2">
+                        @foreach($users->where('peran', 'dosen') as $dosen)
+                            <option value="{{ $dosen->id }}" {{ $item->id_pengajar == $dosen->id ? 'selected' : '' }}>{{ $dosen->nama }}</option>
                         @endforeach
-                    </tbody>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button type="button" onclick="toggleModal('modalEditMatkul{{ $item->id }}')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-300">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    @endforeach
+
+    @endforeach
+</tbody>
                 </table>
             </div>
         </div>
@@ -218,71 +237,55 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- GLOBAL MODALS (Tambah User & Tambah Matkul)-->
+    <!-- GLOBAL MODALS (Tambah User & Tambah Matkul) -->
     <!-- ========================================== -->
 
     <!-- Modal Tambah User -->
-    <!-- Modal Tambah User -->
-<!-- Modal Tambah User -->
-<div id="modalTambahUser" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
-    <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl">
-        <h3 class="text-xl font-bold mb-4">Tambah Pengguna Baru</h3>
-        
-        <form action="{{ route('admin.user.store') }}" method="POST" class="space-y-4">
-            @csrf
-            <div>
-                <label class="block text-sm font-semibold mb-1">Nama Lengkap</label>
-                <input type="text" name="nama" required class="w-full border rounded-lg px-3 py-2">
-            </div>
-
-             <div>
-    <label class="block text-sm font-semibold mb-1">NIM MAHASISWA</label>
-    <input type="text" name="nim" class="w-full border rounded-lg px-3 py-2" placeholder="Masukkan NIM atau NIP (Opsional)">
-</div>
-
-            <div>
-                <label class="block text-sm font-semibold mb-1">Email</label>
-                <input type="email" name="email" required class="w-full border rounded-lg px-3 py-2">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold mb-1">Password</label>
-                <input type="password" name="kata_sandi" required class="w-full border rounded-lg px-3 py-2">
-            </div>
-            <div>
-                <label class="block text-sm font-semibold mb-1">Peran</label>
-                <select name="peran" required class="w-full border rounded-lg px-3 py-2">
-                    <option value="mahasiswa">Mahasiswa</option>
-                    <option value="dosen">Dosen</option>
-                    <option value="admin">Admin</option>
-                </select>
-            </div>
-
-            <!-- TARO DI SINI 👇 -->
-   <div>
-    <label class="block text-sm font-semibold mb-1">Jurusan</label>
-    <select name="jurusan" class="w-full border rounded-lg px-3 py-2 bg-white">
-        <option value="">-- Tidak Ada / Umum (Untuk Dosen/Admin) --</option>
-        <option value="RPL">RPL</option>
-        <option value="TKJ">TKJ</option>
-        <option value="Multimedia">Multimedia</option>
-    </select>
-</div>
-
-            <div class="flex justify-end space-x-2 mt-6">
-                <button type="button" onclick="toggleModal('modalTambahUser')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-300">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">Simpan Data</button>
-            </div>
-        </form>
+    <div id="modalTambahUser" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+        <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl">
+            <h3 class="text-xl font-bold mb-4">Tambah Pengguna Baru</h3>
+            <form action="{{ route('admin.user.store') }}" method="POST" class="space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Nama Lengkap</label>
+                    <input type="text" name="nama" required class="w-full border rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">NIM / NIP</label>
+                    <input type="text" name="nim" class="w-full border rounded-lg px-3 py-2" placeholder="Masukkan NIM atau NIP (Opsional)">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Email</label>
+                    <input type="email" name="email" required class="w-full border rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Password</label>
+                    <input type="password" name="kata_sandi" required class="w-full border rounded-lg px-3 py-2">
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Peran</label>
+                    <select name="peran" required class="w-full border rounded-lg px-3 py-2">
+                        <option value="mahasiswa">Mahasiswa</option>
+                        <option value="dosen">Dosen</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Jurusan</label>
+                    <select name="jurusan" class="w-full border rounded-lg px-3 py-2 bg-white">
+                        <option value="">-- Tidak Ada / Umum (Untuk Dosen/Admin) --</option>
+                        <option value="RPL">RPL</option>
+                        <option value="TKJ">TKJ</option>
+                        <option value="Multimedia">Multimedia</option>
+                    </select>
+                </div>
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button type="button" onclick="toggleModal('modalTambahUser')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-300">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">Simpan Data</button>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
-
-            <div class="flex justify-end space-x-2 mt-6">
-                <button type="button" onclick="toggleModal('modalTambahUser')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-300">Batal</button>
-                <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-700">Simpan Data</button>
-            </div>
-        </form>
-    </div>
-</div>
 
     <!-- Modal Tambah Matkul -->
     <div id="modalTambahMatkul" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
