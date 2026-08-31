@@ -153,93 +153,97 @@
         </div>
 
         <!-- ========================================== -->
-        <!-- BAGIAN 2: KELOLA MATA KULIAH (GROUP BY DOSEN & SEARCH) -->
+        <!-- BAGIAN 2: KELOLA MATA KULIAH (CARD GRID DESIGN) -->
         <!-- ========================================== -->
-        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-                <h2 class="text-lg font-bold text-gray-800">Daftar Mata Kuliah Berdasarkan Dosen</h2>
+                <div>
+                    <h2 class="text-lg font-bold text-gray-800">Daftar Mata Kuliah Berdasarkan Dosen</h2>
+                    <p class="text-xs text-gray-500">Kelola dan ubah mata kuliah pengajar dengan mudah</p>
+                </div>
                 
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <!-- Kotak Pencarian Nama Dosen -->
-                    <input type="text" id="searchDosen" placeholder="Cari nama dosen..." class="w-full md:w-64 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="relative w-full md:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
+                        <input type="text" id="searchDosen" placeholder="Cari nama dosen..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50/50">
+                    </div>
                     
-                    <button onclick="toggleModal('modalTambahMatkul')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition whitespace-nowrap">+ Tambah Matkul</button>
+                    <button onclick="toggleModal('modalTambahMatkul')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap shadow-sm shadow-blue-200">+ Tambah Matkul</button>
                 </div>
             </div>
 
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-gray-50 border-b border-gray-100 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            <th class="p-4">No</th>
-                            <th class="p-4">Nama Dosen Pengajar</th>
-                            <th class="p-4">Mata Kuliah yang Diajar</th>
-                            <th class="p-4 text-center">Aksi (Edit Matkul)</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tabelDosenMatkul" class="divide-y divide-gray-100 text-sm">
-                        @php 
-                            $no = 1; 
-                        @endphp
-                        @foreach($groupedMatkuls as $idPengajar => $items)
-                        @php 
-                            $namaDosen = $items->first()->pengajar->nama ?? 'Tidak Ada Dosen';
-                        @endphp
-                        <tr class="hover:bg-gray-50/50 transition row-dosen" data-dosen="{{ strtolower($namaDosen) }}">
-                            <td class="p-4 text-gray-500 font-semibold">{{ $no++ }}</td>
-                            <td class="p-4 font-bold text-gray-900">👨‍🏫 {{ ucwords($namaDosen) }}</td>
-                            <td class="p-4 text-gray-600">
-                                <div class="flex flex-col gap-1.5">
-                                    @foreach($items as $item)
-                                        <span class="bg-blue-50 text-blue-700 border border-blue-100 px-3 py-1 rounded-md text-xs font-semibold w-fit">
-                                            📚 {{ $item->nama_matkul }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            </td>
-                            <td class="p-4 text-center">
-                                <div class="flex flex-wrap gap-1.5 justify-center">
-                                    @foreach($items as $item)
-                                        <button onclick="toggleModal('modalEditMatkul{{ $item->id }}')" class="text-indigo-600 hover:text-indigo-800 font-semibold text-xs bg-indigo-50 px-2.5 py-1 rounded border border-indigo-100">
-                                            Edit: {{ $item->nama_matkul }}
-                                        </button>
-                                    @endforeach
-                                </div>
-                            </td>
-                        </tr>
-
-                        <!-- Modal Edit Matkul (Per Item) -->
-                        @foreach($items as $item)
-                        <div id="modalEditMatkul{{ $item->id }}" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
-                            <div class="bg-white p-6 rounded-xl w-full max-w-md shadow-2xl">
-                                <h3 class="text-xl font-bold mb-4">Edit Mata Kuliah</h3>
-                                <form action="{{ route('admin.matkul.update', $item->id) }}" method="POST" class="space-y-4">
-                                    @csrf
-                                    @method('PUT')
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-1">Nama Mata Kuliah</label>
-                                        <input type="text" name="nama_matkul" value="{{ $item->nama_matkul }}" required class="w-full border rounded-lg px-3 py-2">
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-semibold mb-1">Dosen Pengajar</label>
-                                        <select name="id_pengajar" required class="w-full border rounded-lg px-3 py-2">
-                                            @foreach($users->where('peran', 'dosen') as $dosen)
-                                                <option value="{{ $dosen->id }}" {{ $item->id_pengajar == $dosen->id ? 'selected' : '' }}>{{ $dosen->nama }}</option>
-                                            @endforeach
-                                        </select>
-                                    </div>
-                                    <div class="flex justify-end space-x-2 mt-6">
-                                        <button type="button" onclick="toggleModal('modalEditMatkul{{ $item->id }}')" class="px-4 py-2 bg-gray-200 rounded-lg text-sm font-semibold hover:bg-gray-300">Batal</button>
-                                        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700">Simpan Perubahan</button>
-                                    </div>
-                                </form>
-                            </div>
+            <!-- List Dosen dalam bentuk Card Modern -->
+            <div class="grid grid-cols-1 gap-4" id="tabelDosenMatkul">
+                @php 
+                    $no = 1; 
+                @endphp
+                @foreach($groupedMatkuls as $idPengajar => $items)
+                @php 
+                    $namaDosen = $items->first()->pengajar->nama ?? 'Tidak Ada Dosen';
+                @endphp
+                
+                <div class="row-dosen bg-white border border-gray-100 hover:border-blue-200 rounded-xl p-5 shadow-sm transition duration-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4" data-dosen="{{ strtolower($namaDosen) }}">
+                    
+                    <!-- Kolom Info Dosen -->
+                    <div class="flex items-center gap-4 min-w-[220px]">
+                        <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 font-bold flex items-center justify-center text-base shadow-inner">
+                            👨‍🏫
                         </div>
-                        @endforeach
+                        <div>
+                            <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider">Pengajar #{{ $no++ }}</span>
+                            <h3 class="font-bold text-gray-900 text-base">{{ ucwords($namaDosen) }}</h3>
+                        </div>
+                    </div>
 
-                        @endforeach
-                    </tbody>
-                </table>
+                    <!-- Kolom Mata Kuliah & Tombol Aksi yang Terhubung Rapi -->
+                    <div class="flex-1 w-full bg-gray-50/70 p-3.5 rounded-xl border border-gray-100">
+                        <div class="text-xs font-bold text-gray-400 uppercase mb-2">Mata Kuliah & Aksi:</div>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach($items as $item)
+                                <div class="inline-flex items-center bg-white border border-gray-200/80 rounded-lg p-1 pl-3 shadow-2xs gap-2">
+                                    <span class="text-xs font-semibold text-gray-700">📚 {{ $item->nama_matkul }}</span>
+                                    <button onclick="toggleModal('modalEditMatkul{{ $item->id }}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2.5 py-1 rounded-md text-xs font-bold transition">
+                                        Edit
+                                    </button>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Modal Edit Matkul (Per Item) -->
+                @foreach($items as $item)
+                <div id="modalEditMatkul{{ $item->id }}" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 backdrop-blur-xs">
+                    <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
+                        <h3 class="text-xl font-bold mb-1 text-gray-900">Edit Mata Kuliah</h3>
+                        <p class="text-xs text-gray-500 mb-4">Ubah nama mata kuliah atau pindahkan dosen pengajar.</p>
+                        <form action="{{ route('admin.matkul.update', $item->id) }}" method="POST" class="space-y-4">
+                            @csrf
+                            @method('PUT')
+                            <div>
+                                <label class="block text-sm font-semibold mb-1 text-gray-700">Nama Mata Kuliah</label>
+                                <input type="text" name="nama_matkul" value="{{ $item->nama_matkul }}" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold mb-1 text-gray-700">Dosen Pengajar</label>
+                                <select name="id_pengajar" required class="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white">
+                                    @foreach($users->where('peran', 'dosen') as $dosen)
+                                        <option value="{{ $dosen->id }}" {{ $item->id_pengajar == $dosen->id ? 'selected' : '' }}>{{ $dosen->nama }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="flex justify-end space-x-2 mt-6">
+                                <button type="button" onclick="toggleModal('modalEditMatkul{{ $item->id }}')" class="px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-semibold hover:bg-gray-200 transition">Batal</button>
+                                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition shadow-sm shadow-blue-200">Simpan Perubahan</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                @endforeach
+
+                @endforeach
             </div>
         </div>
 
@@ -334,10 +338,10 @@
             }
         }
 
-        // Fitur Pencarian Dosen Secara Realtime yang Spesifik Berdasarkan Nama Dosen
+        // Fitur Pencarian Dosen Secara Realtime
         document.getElementById('searchDosen').addEventListener('input', function() {
             let keyword = this.value.toLowerCase().trim();
-            let rows = document.querySelectorAll('#tabelDosenMatkul tr.row-dosen');
+            let rows = document.querySelectorAll('#tabelDosenMatkul div.row-dosen');
 
             rows.forEach(function(row) {
                 let namaDosen = row.getAttribute('data-dosen');
