@@ -18,18 +18,18 @@ class DashboardController extends Controller
     // BAGIAN ADMIN (Kelola User & Mata Kuliah)
     // ==========================================
 
-public function adminDashboard()
-{
-    $users = Pengguna::all();
+    public function adminDashboard()
+    {
+        $users = Pengguna::all();
 
-    // Ambil data mata kuliah, lalu group berdasarkan id_pengajar
-    $groupedMatkuls = MataKuliah::with('pengajar')->get()->groupBy('id_pengajar');
+        // Ambil data mata kuliah, lalu group berdasarkan id_pengajar
+        $groupedMatkuls = MataKuliah::with('pengajar')->get()->groupBy('id_pengajar');
 
-    $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
-    $statusKrs = $settingKrs ? $settingKrs->value : 1;
+        $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
+        $statusKrs = $settingKrs ? $settingKrs->value : 1;
 
-    return view('admin', compact('users', 'groupedMatkuls', 'statusKrs'));
-}
+        return view('admin', compact('users', 'groupedMatkuls', 'statusKrs'));
+    }
 
     public function storeUser(Request $request)
     {
@@ -89,16 +89,27 @@ public function adminDashboard()
         return back()->with('sukses', 'Akun pengguna berhasil dihapus!');
     }
 
-    public function storeMatkulAdmin(Request $request)
+   public function storeMatkulAdmin(Request $request)
     {
         $request->validate([
             'nama_matkul' => 'required|string|max:255',
             'id_pengajar' => 'required|exists:pengguna,id',
+            'id_matkul'   => 'nullable|string|max:255',
         ]);
+
+        $existingMatkul = MataKuliah::where('nama_matkul', $request->nama_matkul)->oldest()->first();
+
+        $assignedIdMatkul = null;
+        if ($existingMatkul) {
+            $assignedIdMatkul = $existingMatkul->id_matkul ?? $existingMatkul->id;
+        } else {
+            $assignedIdMatkul = $request->id_matkul;
+        }
 
         MataKuliah::create([
             'nama_matkul' => $request->nama_matkul,
             'id_pengajar' => $request->id_pengajar,
+            'id_matkul'   => $assignedIdMatkul,
         ]);
 
         return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
@@ -111,11 +122,13 @@ public function adminDashboard()
         $request->validate([
             'nama_matkul' => 'required|string|max:255',
             'id_pengajar' => 'required|exists:pengguna,id',
+            'id_matkul' => 'nullable|string|max:255',
         ]);
 
         $matkul->update([
             'nama_matkul' => $request->nama_matkul,
             'id_pengajar' => $request->id_pengajar,
+            'id_matkul' => $request->id_matkul,
         ]);
 
         return back()->with('sukses_matkul', 'Mata Kuliah berhasil diperbarui!');
@@ -173,43 +186,55 @@ public function adminDashboard()
         return view('nilai', compact('pengumpulan'));
     }
 
-    public function storeMatkul(Request $request)
+   public function storeMatkul(Request $request)
     {
         $request->validate([
             'nama_matkul' => 'required|string|max:255',
+            'id_matkul'   => 'nullable|string|max:255',
         ]);
+
+        // Cek apakah mata kuliah dengan nama yang sama sudah ada di database
+        $existingMatkul = MataKuliah::where('nama_matkul', $request->nama_matkul)->oldest()->first();
+
+        // Tentukan id_matkul: jika sudah ada yang lama, ambil id_matkul miliknya (atau id utamanya jika id_matkul-nya kosong). Jika belum ada, pakai input baru atau biarkan.
+        $assignedIdMatkul = null;
+        if ($existingMatkul) {
+            $assignedIdMatkul = $existingMatkul->id_matkul ?? $existingMatkul->id;
+        } else {
+            $assignedIdMatkul = $request->id_matkul;
+        }
 
         MataKuliah::create([
             'nama_matkul' => $request->nama_matkul,
             'id_pengajar' => Auth::id(),
+            'id_matkul'   => $assignedIdMatkul, 
         ]);
 
         return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
     }
 
- public function storeTugas(Request $request)
-{
-    // Validasi agar form wajib diisi dan mencegah data kosong masuk
-    $request->validate([
-        'jurusan_tujuan' => 'required',
-        'id_matkul'      => 'required',
-        'judul'          => 'required',
-        'deskripsi'      => 'required',
-        'tenggat_waktu'  => 'required',
-    ]);
+    public function storeTugas(Request $request)
+    {
+        $request->validate([
+            'jurusan_tujuan' => 'required',
+            'id_matkul'      => 'required',
+            'judul'          => 'required',
+            'deskripsi'      => 'required',
+            'tenggat_waktu'  => 'required',
+        ]);
 
-    \App\Models\Tugas::create([
-        'id_pengguna'    => Auth::id(),
-        'id_matkul'      => $request->input('id_matkul'), // Menggunakan input() lebih aman
-        'judul'          => $request->judul,
-        'deskripsi'      => $request->deskripsi,
-        'jurusan_tujuan' => $request->jurusan_tujuan,
-        'tenggat_waktu'  => $request->tenggat_waktu,
-        'status'         => 'pending',
-    ]);
+        \App\Models\Tugas::create([
+            'id_pengguna'    => Auth::id(),
+            'id_matkul'      => $request->input('id_matkul'),
+            'judul'          => $request->judul,
+            'deskripsi'      => $request->deskripsi,
+            'jurusan_tujuan' => $request->jurusan_tujuan,
+            'tenggat_waktu'  => $request->tenggat_waktu,
+            'status'         => 'pending',
+        ]);
 
-    return redirect()->back()->with('success', 'Tugas berhasil dibuat!');
-}
+        return redirect()->back()->with('success', 'Tugas berhasil dibuat!');
+    }
 
     public function beriNilai(Request $request, $id)
     {
@@ -232,30 +257,26 @@ public function adminDashboard()
     // BAGIAN MAHASISWA
     // ==========================================
 
-   public function mahasiswaDashboard()
-{
-    // 1. Ambil data mahasiswa yang sedang login menggunakan guard 'mahasiswa'
-    $mahasiswa = Auth::guard('mahasiswa')->user();
-    
-    // Ambil teks jurusan mahasiswa, bersihkan spasi, dan ubah ke huruf kecil
-    $jurusanMhs = strtolower(trim($mahasiswa->jurusan ?? ''));
+    public function mahasiswaDashboard()
+    {
+        $mahasiswa = Auth::guard('mahasiswa')->user();
+        $jurusanMhs = strtolower(trim($mahasiswa->jurusan ?? ''));
 
-    // 2. Ambil tugas dengan filter yang fleksibel tapi tetap spesifik
-    $tugas = \App\Models\Tugas::where(function($query) use ($jurusanMhs) {
-        $query->whereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', [$jurusanMhs])
-              ->orWhereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', ['semua'])
-              ->orWhereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', ['-'])
-              ->orWhereNull('jurusan_tujuan');
-    })->get();
+        $tugas = \App\Models\Tugas::where(function($query) use ($jurusanMhs) {
+            $query->whereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', [$jurusanMhs])
+                  ->orWhereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', ['semua'])
+                  ->orWhereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', ['-'])
+                  ->orWhereNull('jurusan_tujuan');
+        })->get();
 
-  $semuaMatkul = \App\Models\MataKuliah::all()->unique('nama_matkul');
-    $krsList = \App\Models\Krs::where('id_pengguna', $mahasiswa->id)->get();
-    $totalSks = $krsList->sum(function($item) {
-        return $item->mataKuliah->sks ?? 3;
-    });
+        $semuaMatkul = \App\Models\MataKuliah::all()->unique('nama_matkul');
+        $krsList = \App\Models\Krs::where('id_pengguna', $mahasiswa->id)->get();
+        $totalSks = $krsList->sum(function($item) {
+            return $item->mataKuliah->sks ?? 3;
+        });
 
-    return view('mahasiswa', compact('mahasiswa', 'tugas', 'semuaMatkul', 'krsList', 'totalSks'));
-}
+        return view('mahasiswa', compact('mahasiswa', 'tugas', 'semuaMatkul', 'krsList', 'totalSks'));
+    }
 
     public function kumpulTugas(Request $request)
     {
@@ -276,27 +297,29 @@ public function adminDashboard()
         return back()->with('sukses', 'Link tugas berhasil dikirim!');
     }
 
-    public function storeKrs(Request $request)
-    {
-        $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
-        $statusKrs = $settingKrs ? $settingKrs->value : 1;
+   
+public function storeKrs(Request $request)
+{
+    $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
+    $statusKrs = $settingKrs ? $settingKrs->value : 1;
 
-        if ($statusKrs == 0) {
-            return redirect()->back()->with('error', 'Maaf, periode pengisian KRS sedang ditutup oleh Admin.');
-        }
-
-        $request->validate([
-            'id_tugas' => 'required',
-        ]);
-
-        Krs::create([
-            'id_pengguna' => Auth::guard('mahasiswa')->id(),
-            'id_tugas'    => $request->id_tugas,
-            'semester'    => 1,
-        ]);
-
-        return redirect()->back()->with('success', 'Mata kuliah berhasil ditambahkan ke KRS!');
+    if ($statusKrs == 0) {
+        return redirect()->back()->with('error', 'Maaf, periode pengisian KRS sedang ditutup oleh Admin.');
     }
+
+    $request->validate([
+        'id_matkul' => 'required', 
+    ]);
+
+    // Tetap gunakan 'id_tugas' jika kolom di database aslinya memang bernama id_tugas
+    Krs::create([
+        'id_pengguna' => Auth::guard('mahasiswa')->id(),
+        'id_tugas'    => $request->id_matkul, // Mengambil input id_matkul, lalu disimpan ke kolom id_tugas database
+        'semester'    => 1,
+    ]);
+
+    return redirect()->back()->with('sukses', 'Mata kuliah berhasil ditambahkan ke KRS!');
+}
 
     public function destroyKrs($id)
     {

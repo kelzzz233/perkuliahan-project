@@ -546,12 +546,13 @@
                     </div>
                 </div>
 
+                <!-- Form Tambah KRS -->
                 <div style="background: var(--card-bg); padding: 20px; border-radius: 16px; margin-bottom: 24px; border: 1px solid var(--border);">
                     <form action="{{ route('mahasiswa.krs.store') }}" method="POST" style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
                         @csrf
                         <div style="flex: 1; min-width: 250px;">
                             <label style="display: block; font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text-muted);">Pilih Mata Kuliah untuk Ditambah:</label>
-                            <select name="id_tugas" class="upload-input" required>
+                            <select name="id_matkul" class="upload-input" required>
                                 <option value="">-- Pilih Mata Kuliah --</option>
                                 @foreach($semuaMatkul as $matkul)
                                     <option value="{{ $matkul->id }}">{{ $matkul->nama_matkul ?? $matkul->nama }} ({{ $matkul->sks ?? 3 }} SKS)</option>
@@ -562,6 +563,7 @@
                     </form>
                 </div>
 
+                <!-- Tabel Data KRS -->
                 <div class="table-container">
                     <table>
                         <thead>
@@ -578,7 +580,8 @@
                             @forelse($krsList as $index => $item)
                             <tr>
                                 <td>{{ $index + 1 }}</td>
-                                <td><span style="font-family: monospace; font-weight: 700;">MK-00{{ $index + 1 }}</span></td>
+                                <!-- Mengambil ID murni dari database sesuai kolom id atau id_matkul -->
+                                <td><span style="font-family: monospace; font-weight: 700;">#{{ $item->mataKuliah->id_matkul ?? $item->mataKuliah->id ?? $index + 1 }}</span></td>
                                 <td><strong>{{ $item->mataKuliah->nama_matkul ?? $item->mataKuliah->nama ?? 'Tidak Diketahui' }}</strong></td>
                                 <td>{{ $item->mataKuliah->sks ?? 3 }} SKS</td>
                                 <td>Semester 1</td>
@@ -609,7 +612,6 @@
                         {{ strtoupper(substr($mahasiswa->nama, 0, 2)) }}
                     </div>
                     
-                    <!-- Form untuk memperbarui Nama dan NIM -->
                     <form action="{{ route('mahasiswa.profil.update') }}" method="POST" class="biodata-details">
                         @csrf
                         @method('PUT')
@@ -652,9 +654,6 @@
         </div>
     </div>
 
-    <!-- Letakkan ini sementara di dalam file resources/views/mahasiswa.blade.php -->
-
-
     <!-- SCRIPT INTERAKTIF & THEME TOGGLE -->
     <script>
         function switchTab(evt, paneId) {
@@ -680,14 +679,11 @@
             localStorage.setItem("theme", newTheme);
         }
 
-        // Simpan preferensi tema pengguna
         window.addEventListener("DOMContentLoaded", () => {
             const savedTheme = localStorage.getItem("theme") || "light";
             document.documentElement.setAttribute("data-theme", savedTheme);
         });
     </script>
-
-
 
 </body>
 </html>

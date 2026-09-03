@@ -102,7 +102,7 @@
                                 </span>
                             </td>
                             <td class="p-4 text-center space-x-3">
-                                <button onclick="toggleModal('modalEditUser{{ $u->id }}')" class="text-indigo-600 hover:text-indigo-800 font-semibold text-sm">Edit</button>
+                                <button type="button" onclick="toggleModal('modalEditUser{{ $u->id }}')" class="text-indigo-600 hover:text-indigo-800 font-semibold text-sm">Edit</button>
 
                                 <form action="{{ route('admin.user.delete', $u->id) }}" method="POST" class="inline" onsubmit="return confirm('Yakin ingin menghapus pengguna ini?')">
                                     @csrf
@@ -169,7 +169,7 @@
                         <input type="text" id="searchDosen" placeholder="Cari nama dosen..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50/50">
                     </div>
                     
-                    <button onclick="toggleModal('modalTambahMatkul')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap shadow-sm shadow-blue-200">+ Tambah Matkul</button>
+                    <button type="button" onclick="toggleModal('modalTambahMatkul')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap shadow-sm shadow-blue-200">+ Tambah Matkul</button>
                 </div>
             </div>
 
@@ -203,7 +203,7 @@
                             @foreach($items as $item)
                                 <div class="inline-flex items-center bg-white border border-gray-200/80 rounded-lg p-1 pl-3 shadow-2xs gap-2">
                                     <span class="text-xs font-semibold text-gray-700">📚 {{ $item->nama_matkul }}</span>
-                                    <button onclick="toggleModal('modalEditMatkul{{ $item->id }}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2.5 py-1 rounded-md text-xs font-bold transition">
+                                    <button type="button" onclick="toggleModal('modalEditMatkul{{ $item->id }}')" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-600 px-2.5 py-1 rounded-md text-xs font-bold transition">
                                         Edit
                                     </button>
                                 </div>
@@ -213,7 +213,7 @@
 
                 </div>
 
-                <!-- Modal Edit Matkul (Per Item) -->
+                <!-- Modal Edit Matkul (Per Item) - Ditempatkan di dalam perulangan agar ID uniknya ter-render dengan benar -->
                 @foreach($items as $item)
                 <div id="modalEditMatkul{{ $item->id }}" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 backdrop-blur-xs">
                     <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
@@ -331,10 +331,12 @@
     <script>
         function toggleModal(modalID) {
             const modal = document.getElementById(modalID);
-            if (modal.classList.contains('hidden')) {
-                modal.classList.remove('hidden');
-            } else {
-                modal.classList.add('hidden');
+            if (modal) {
+                if (modal.classList.contains('hidden')) {
+                    modal.classList.remove('hidden');
+                } else {
+                    modal.classList.add('hidden');
+                }
             }
         }
 

@@ -123,7 +123,7 @@
                     <div class="matkul-grid">
                         @foreach($matkuls as $m)
                             <div class="matkul-item">
-                                <div class="matkul-id">ID MATKUL #{{ $m->id }}</div>
+                              <div class="matkul-id">ID MATKUL #{{ $m->id_matkul }}</div>
                                 <div class="matkul-name">{{ $m->nama_matkul ?? $m->nama }}</div>
                             </div>
                         @endforeach
