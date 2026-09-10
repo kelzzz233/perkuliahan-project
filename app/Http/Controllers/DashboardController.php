@@ -89,7 +89,7 @@ class DashboardController extends Controller
         return back()->with('sukses', 'Akun pengguna berhasil dihapus!');
     }
 
-  public function storeMatkulAdmin(Request $request)
+ public function storeMatkulAdmin(Request $request)
 {
     $request->validate([
         'nama_matkul' => 'required|string|max:255',
@@ -97,18 +97,39 @@ class DashboardController extends Controller
         'id_matkul'   => 'nullable|string|max:255',
     ]);
 
-    // Cek apakah nama mata kuliah sudah ada di database
-    $matkulAda = MataKuliah::whereRaw('LOWER(nama_matkul) = ?', [strtolower(trim($request->nama_matkul))])->exists();
+    $namaClean = strtolower(trim($request->nama_matkul));
 
-    if ($matkulAda) {
-        return back()->with('error', 'Mata kuliah dengan nama tersebut sudah ada!');
+    // 1. Cek apakah dosen terpilih sudah mengampu matkul ini
+    $matkulSamaDosen = MataKuliah::where('id_pengajar', $request->id_pengajar)
+        ->whereRaw('LOWER(nama_matkul) = ?', [$namaClean])
+        ->exists();
+
+    if ($matkulSamaDosen) {
+        return back()->with('error', 'Dosen tersebut sudah mengampu mata kuliah ini!');
     }
 
-    MataKuliah::create([
+    // 2. Cek apakah matkul ini sudah ada di dosen lain
+    $matkulEksis = MataKuliah::whereRaw('LOWER(nama_matkul) = ?', [$namaClean])
+        ->whereNotNull('id_matkul')
+        ->first();
+
+    $idMatkulFinal = $request->id_matkul;
+    if (!$idMatkulFinal && $matkulEksis) {
+        $idMatkulFinal = $matkulEksis->id_matkul;
+    }
+
+    // 3. Simpan data
+    $matkul = MataKuliah::create([
         'nama_matkul' => $request->nama_matkul,
         'id_pengajar' => $request->id_pengajar,
-        'id_matkul'   => $request->id_matkul,
+        'id_matkul'   => $idMatkulFinal,
     ]);
+
+    if (!$matkul->id_matkul) {
+        $matkul->update([
+            'id_matkul' => $matkul->id
+        ]);
+    }
 
     return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
 }
@@ -184,30 +205,51 @@ class DashboardController extends Controller
         return view('nilai', compact('pengumpulan'));
     }
 
-    public function storeMatkul(Request $request)
+   public function storeMatkul(Request $request)
 {
-    // Validasi agar nama_matkul tidak boleh sama di tabel mata_kuliah (case-insensitive)
     $request->validate([
         'nama_matkul' => 'required|string|max:255',
         'id_matkul'   => 'nullable|string|max:255',
     ]);
 
-    // Cek apakah nama mata kuliah sudah ada di database (abaikan huruf besar/kecil)
-    $matkulAda = MataKuliah::whereRaw('LOWER(nama_matkul) = ?', [strtolower(trim($request->nama_matkul))])->exists();
+    $namaClean = strtolower(trim($request->nama_matkul));
 
-    if ($matkulAda) {
-        return back()->with('error', 'Mata kuliah dengan nama tersebut sudah ada!');
+    // 1. Cek apakah dosen INI sudah punya matkul tersebut
+    $matkulSamaDosen = MataKuliah::where('id_pengajar', Auth::id())
+        ->whereRaw('LOWER(nama_matkul) = ?', [$namaClean])
+        ->exists();
+
+    if ($matkulSamaDosen) {
+        return back()->with('error', 'Anda sudah membuat mata kuliah dengan nama tersebut!');
     }
 
-    MataKuliah::create([
+    // 2. Cek apakah matkul dengan nama ini SUDAH ADA di dosen lain
+    $matkulEksis = MataKuliah::whereRaw('LOWER(nama_matkul) = ?', [$namaClean])
+        ->whereNotNull('id_matkul')
+        ->first();
+
+    // Jika sudah ada di dosen lain, samakan id_matkul-nya
+    $idMatkulFinal = $request->id_matkul;
+    if (!$idMatkulFinal && $matkulEksis) {
+        $idMatkulFinal = $matkulEksis->id_matkul;
+    }
+
+    // 3. Simpan data
+    $matkul = MataKuliah::create([
         'nama_matkul' => $request->nama_matkul,
         'id_pengajar' => Auth::id(),
-        'id_matkul'   => $request->id_matkul,
+        'id_matkul'   => $idMatkulFinal,
     ]);
+
+    // Jika benar-benar mata kuliah baru (belum pernah ada sama sekali), pakai id-nya sendiri
+    if (!$matkul->id_matkul) {
+        $matkul->update([
+            'id_matkul' => $matkul->id
+        ]);
+    }
 
     return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
 }
-
     public function storeTugas(Request $request)
     {
         $request->validate([
