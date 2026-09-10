@@ -18,20 +18,27 @@
 
         <!-- Bagian Kiri: Ilustrasi / Tema Kampus -->
         <div class="p-8 hidden md:flex flex-col justify-between bg-gradient-to-tr from-indigo-600 to-blue-500 text-white relative overflow-hidden">
-            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl"></div>
-            <div>
-                <span class="bg-white/20 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Portal Akademik</span>
-               <h1 class="text-3xl font-bold mt-4 leading-snug">
-    Sistem Pengelolaan Tugas & Kuliah
-</h1>
 
-<img 
-    src="{{ asset('images/logo-ippi.png') }}" 
-    alt="Logo IPPI"
-    class="w-28 h-28 object-contain mt-5"
->
+            <!-- Logo Watermark Memenuhi Panel (Full) tanpa Bingkai Kotak -->
+            <img
+                src="{{ asset('images/logo-ippi.png') }}"
+                alt="Logo IPPI Background"
+                class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] object-contain opacity-20 mix-blend-screen pointer-events-none select-none z-0"
+            >
+
+            <div class="absolute -right-10 -bottom-10 w-48 h-48 bg-white/10 rounded-full blur-2xl z-0"></div>
+
+            <!-- Konten Utama (z-10 agar berada di atas logo) -->
+            <div class="relative z-10">
+                <span class="bg-white/20 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">Portal Akademik</span>
+                <h1 class="text-3xl font-bold mt-4 leading-snug">
+                    Sistem Pengelolaan Tugas & Kuliah
+                </h1>
             </div>
-            <p class="text-sm text-indigo-100 opacity-90">Kelola tugas kuliah, kumpulkan berkas, dan pantau nilai dengan mudah dalam satu platform terintegrasi.</p>
+
+            <p class="text-sm text-indigo-100 opacity-90 relative z-10">
+                Kelola tugas kuliah, kumpulkan berkas, dan pantau nilai dengan mudah dalam satu platform terintegrasi.
+            </p>
         </div>
 
         <!-- Bagian Kanan: Form Login -->
@@ -57,24 +64,23 @@
 
             <form action="{{ route('login') }}" method="POST" class="space-y-4">
                 @csrf
-               <div>
-    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">
-        Nama
-    </label>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">
+                        Nama
+                    </label>
 
-    <input 
-        type="text" 
-        name="nama" 
-        value="{{ old('nama') }}"
-        required 
-        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition" 
-        placeholder="Masukkan nama"
-    >
-</div>
+                    <input
+                        type="text"
+                        name="nama"
+                        value="{{ old('nama') }}"
+                        required
+                        class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition"
+                        placeholder="Masukkan nama"
+                    >
+                </div>
 
                 <div>
                     <label class="block text-xs font-semibold text-gray-600 uppercase tracking-wider mb-1">Password</label>
-                    <!-- Perhatikan name="password" agar sinkron dengan Controller -->
                     <input type="password" name="password" required class="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:bg-white focus:outline-none transition" placeholder="••••••••">
                 </div>
 

@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\AuthMahasiswaController;
-use App\Http\Controllers\Admin\SettingController; 
+use App\Http\Controllers\Admin\SettingController;
 use App\Http\Controllers\DosenController;
 
 // Redirect Halaman Utama
@@ -51,6 +51,9 @@ Route::middleware(['auth', 'peran:dosen'])->prefix('dosen')->name('dosen.')->gro
     Route::post('/matkul', [DashboardController::class, 'storeMatkul'])->name('matkul.store');
     Route::post('/tugas', [DashboardController::class, 'storeTugas'])->name('tugas.store');
     Route::post('/nilai/{id}', [DashboardController::class, 'beriNilai'])->name('nilai.simpan');
+
+    Route::put('/tugas/{id}', [DashboardController::class, 'updateTugas'])->name('tugas.update');
+    Route::delete('/tugas/{id}', [DashboardController::class, 'destroyTugas'])->name('tugas.destroy');
 
     // Route lihat berkas mahasiswa oleh dosen
     Route::get('/berkas/{id}', [DashboardController::class, 'lihatBerkas'])->name('berkas.lihat');

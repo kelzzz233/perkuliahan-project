@@ -89,31 +89,29 @@ class DashboardController extends Controller
         return back()->with('sukses', 'Akun pengguna berhasil dihapus!');
     }
 
-   public function storeMatkulAdmin(Request $request)
-    {
-        $request->validate([
-            'nama_matkul' => 'required|string|max:255',
-            'id_pengajar' => 'required|exists:pengguna,id',
-            'id_matkul'   => 'nullable|string|max:255',
-        ]);
+  public function storeMatkulAdmin(Request $request)
+{
+    $request->validate([
+        'nama_matkul' => 'required|string|max:255',
+        'id_pengajar' => 'required|exists:pengguna,id',
+        'id_matkul'   => 'nullable|string|max:255',
+    ]);
 
-        $existingMatkul = MataKuliah::where('nama_matkul', $request->nama_matkul)->oldest()->first();
+    // Cek apakah nama mata kuliah sudah ada di database
+    $matkulAda = MataKuliah::whereRaw('LOWER(nama_matkul) = ?', [strtolower(trim($request->nama_matkul))])->exists();
 
-        $assignedIdMatkul = null;
-        if ($existingMatkul) {
-            $assignedIdMatkul = $existingMatkul->id_matkul ?? $existingMatkul->id;
-        } else {
-            $assignedIdMatkul = $request->id_matkul;
-        }
-
-        MataKuliah::create([
-            'nama_matkul' => $request->nama_matkul,
-            'id_pengajar' => $request->id_pengajar,
-            'id_matkul'   => $assignedIdMatkul,
-        ]);
-
-        return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
+    if ($matkulAda) {
+        return back()->with('error', 'Mata kuliah dengan nama tersebut sudah ada!');
     }
+
+    MataKuliah::create([
+        'nama_matkul' => $request->nama_matkul,
+        'id_pengajar' => $request->id_pengajar,
+        'id_matkul'   => $request->id_matkul,
+    ]);
+
+    return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
+}
 
     public function updateMatkul(Request $request, $id)
     {
@@ -186,32 +184,29 @@ class DashboardController extends Controller
         return view('nilai', compact('pengumpulan'));
     }
 
-   public function storeMatkul(Request $request)
-    {
-        $request->validate([
-            'nama_matkul' => 'required|string|max:255',
-            'id_matkul'   => 'nullable|string|max:255',
-        ]);
+    public function storeMatkul(Request $request)
+{
+    // Validasi agar nama_matkul tidak boleh sama di tabel mata_kuliah (case-insensitive)
+    $request->validate([
+        'nama_matkul' => 'required|string|max:255',
+        'id_matkul'   => 'nullable|string|max:255',
+    ]);
 
-        // Cek apakah mata kuliah dengan nama yang sama sudah ada di database
-        $existingMatkul = MataKuliah::where('nama_matkul', $request->nama_matkul)->oldest()->first();
+    // Cek apakah nama mata kuliah sudah ada di database (abaikan huruf besar/kecil)
+    $matkulAda = MataKuliah::whereRaw('LOWER(nama_matkul) = ?', [strtolower(trim($request->nama_matkul))])->exists();
 
-        // Tentukan id_matkul: jika sudah ada yang lama, ambil id_matkul miliknya (atau id utamanya jika id_matkul-nya kosong). Jika belum ada, pakai input baru atau biarkan.
-        $assignedIdMatkul = null;
-        if ($existingMatkul) {
-            $assignedIdMatkul = $existingMatkul->id_matkul ?? $existingMatkul->id;
-        } else {
-            $assignedIdMatkul = $request->id_matkul;
-        }
-
-        MataKuliah::create([
-            'nama_matkul' => $request->nama_matkul,
-            'id_pengajar' => Auth::id(),
-            'id_matkul'   => $assignedIdMatkul, 
-        ]);
-
-        return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
+    if ($matkulAda) {
+        return back()->with('error', 'Mata kuliah dengan nama tersebut sudah ada!');
     }
+
+    MataKuliah::create([
+        'nama_matkul' => $request->nama_matkul,
+        'id_pengajar' => Auth::id(),
+        'id_matkul'   => $request->id_matkul,
+    ]);
+
+    return back()->with('sukses_matkul', 'Mata Kuliah berhasil ditambahkan!');
+}
 
     public function storeTugas(Request $request)
     {
@@ -223,7 +218,7 @@ class DashboardController extends Controller
             'tenggat_waktu'  => 'required',
         ]);
 
-        \App\Models\Tugas::create([
+        Tugas::create([
             'id_pengguna'    => Auth::id(),
             'id_matkul'      => $request->input('id_matkul'),
             'judul'          => $request->judul,
@@ -234,6 +229,38 @@ class DashboardController extends Controller
         ]);
 
         return redirect()->back()->with('success', 'Tugas berhasil dibuat!');
+    }
+
+    // === METHOD EDIT TUGAS ===
+    public function updateTugas(Request $request, $id)
+    {
+        $request->validate([
+            'jurusan_tujuan' => 'required',
+            'id_matkul'      => 'required',
+            'judul'          => 'required',
+            'deskripsi'      => 'required',
+            'tenggat_waktu'  => 'required',
+        ]);
+
+        $tugas = Tugas::findOrFail($id);
+        $tugas->update([
+            'jurusan_tujuan' => $request->jurusan_tujuan,
+            'id_matkul'      => $request->id_matkul,
+            'judul'          => $request->judul,
+            'deskripsi'      => $request->deskripsi,
+            'tenggat_waktu'  => $request->tenggat_waktu,
+        ]);
+
+        return redirect()->back()->with('success', 'Tugas berhasil diperbarui!');
+    }
+
+    // === METHOD HAPUS TUGAS ===
+    public function destroyTugas($id)
+    {
+        $tugas = Tugas::findOrFail($id);
+        $tugas->delete();
+
+        return redirect()->back()->with('success', 'Tugas berhasil dihapus!');
     }
 
     public function beriNilai(Request $request, $id)
@@ -262,15 +289,15 @@ class DashboardController extends Controller
         $mahasiswa = Auth::guard('mahasiswa')->user();
         $jurusanMhs = strtolower(trim($mahasiswa->jurusan ?? ''));
 
-        $tugas = \App\Models\Tugas::where(function($query) use ($jurusanMhs) {
+        $tugas = Tugas::where(function($query) use ($jurusanMhs) {
             $query->whereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', [$jurusanMhs])
                   ->orWhereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', ['semua'])
                   ->orWhereRaw('LOWER(TRIM(jurusan_tujuan)) = ?', ['-'])
                   ->orWhereNull('jurusan_tujuan');
         })->get();
 
-        $semuaMatkul = \App\Models\MataKuliah::all()->unique('nama_matkul');
-        $krsList = \App\Models\Krs::where('id_pengguna', $mahasiswa->id)->get();
+        $semuaMatkul = MataKuliah::all()->unique('nama_matkul');
+        $krsList = Krs::where('id_pengguna', $mahasiswa->id)->get();
         $totalSks = $krsList->sum(function($item) {
             return $item->mataKuliah->sks ?? 3;
         });
@@ -297,29 +324,27 @@ class DashboardController extends Controller
         return back()->with('sukses', 'Link tugas berhasil dikirim!');
     }
 
-   
-public function storeKrs(Request $request)
-{
-    $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
-    $statusKrs = $settingKrs ? $settingKrs->value : 1;
+    public function storeKrs(Request $request)
+    {
+        $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
+        $statusKrs = $settingKrs ? $settingKrs->value : 1;
 
-    if ($statusKrs == 0) {
-        return redirect()->back()->with('error', 'Maaf, periode pengisian KRS sedang ditutup oleh Admin.');
+        if ($statusKrs == 0) {
+            return redirect()->back()->with('error', 'Maaf, periode pengisian KRS sedang ditutup oleh Admin.');
+        }
+
+        $request->validate([
+            'id_matkul' => 'required',
+        ]);
+
+        Krs::create([
+            'id_pengguna' => Auth::guard('mahasiswa')->id(),
+            'id_tugas'    => $request->id_matkul,
+            'semester'    => 1,
+        ]);
+
+        return redirect()->back()->with('sukses', 'Mata kuliah berhasil ditambahkan ke KRS!');
     }
-
-    $request->validate([
-        'id_matkul' => 'required', 
-    ]);
-
-    // Tetap gunakan 'id_tugas' jika kolom di database aslinya memang bernama id_tugas
-    Krs::create([
-        'id_pengguna' => Auth::guard('mahasiswa')->id(),
-        'id_tugas'    => $request->id_matkul, // Mengambil input id_matkul, lalu disimpan ke kolom id_tugas database
-        'semester'    => 1,
-    ]);
-
-    return redirect()->back()->with('sukses', 'Mata kuliah berhasil ditambahkan ke KRS!');
-}
 
     public function destroyKrs($id)
     {
@@ -339,13 +364,13 @@ public function storeKrs(Request $request)
     public function lihatBerkas($id)
     {
         $p = Pengumpulan::findOrFail($id);
-        
+
         if (filter_var($p->jalur_berkas, FILTER_VALIDATE_URL)) {
             return redirect()->away($p->jalur_berkas);
         }
 
         $path = storage_path('app/public/' . $p->jalur_berkas);
-        
+
         if (!file_exists($path)) {
             abort(404, 'Berkas fisik tidak ditemukan di server.');
         }
