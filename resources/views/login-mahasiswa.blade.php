@@ -55,6 +55,10 @@
         }
     </style>
 </head>
+
+<body class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-cover bg-center bg-no-repeat bg-fixed"
+      style="background-image: url('https://www.ypippijkt.sch.id/public/uploads/kegiatan/futsal.jpeg');">
+
 <body class="bg-slate-950 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
 
     <!-- Ambient Glowing Background Bubbles -->

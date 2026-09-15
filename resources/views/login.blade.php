@@ -48,7 +48,8 @@
     </style>
 </head>
 
-<body class="bg-slate-950 min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
+<body class="min-h-screen flex items-center justify-center p-4 relative overflow-hidden bg-cover bg-center bg-no-repeat bg-fixed"
+      style="background-image: url('https://www.ypippijkt.sch.id/public/uploads/T74LwVWAQqflxR0mhxfHJEKD6XCeG5.jpg');">
 
     <!-- Ambient Glowing Background Bubbles -->
     <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/30 rounded-full filter blur-3xl animate-blob pointer-events-none"></div>
@@ -58,7 +59,7 @@
     <div class="max-w-4xl w-full bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl overflow-hidden grid grid-cols-1 md:grid-cols-2 border border-white/20 relative z-10 animate-fade-in-up">
 
         <!-- ================= BAGIAN KIRI ================= -->
-        <div class="p-8 md:p-10 hidden md:flex flex-col justify-between bg-gradient-to-br from-indigo-50/80 via-blue-50/50 to-slate-50/80 border-r border-indigo-100/50 relative overflow-hidden">
+        <div class="p-8 md:p-10 hidden md:flex flex-col justify-between bg-gradient-to-br from-indigo-50/90 via-blue-50/60 to-slate-50/90 border-r border-indigo-100/50 relative overflow-hidden">
 
             <!-- Header: Badge -->
             <div class="flex items-center justify-between">
@@ -93,7 +94,7 @@
 
 
         <!-- ================= BAGIAN KANAN ================= -->
-        <div class="p-8 md:p-12 bg-white flex flex-col justify-center">
+        <div class="p-8 md:p-12 bg-white/95 flex flex-col justify-center">
 
             <div class="mb-8">
                 <h2 class="text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-2">
