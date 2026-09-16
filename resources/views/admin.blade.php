@@ -46,13 +46,43 @@
             </div>
         @endif
 
+        <!-- Notifikasi Peringatan NIM/NIP Sudah Ada -->
+        @if(session('error_nim'))
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 text-amber-800 text-sm rounded shadow-sm flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span class="text-lg">⚠️</span>
+                    <div>
+                        <strong class="font-bold">Gagal Menambahkan Pengguna!</strong>
+                        <p class="text-xs text-amber-700 mt-0.5">{{ session('error_nim') }}</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
+        <!-- Notifikasi Khusus Status KRS -->
+        @if(session('notif_stok'))
+            <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 text-indigo-700 text-sm rounded shadow-sm flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <span>📢</span>
+                    <span class="font-medium">{{ session('notif_stok') }}</span>
+                </div>
+            </div>
+        @endif
+
         <!-- ========================================== -->
         <!-- PENGATURAN STATUS KRS (ON/OFF) -->
         <!-- ========================================== -->
         <div class="bg-gradient-to-r from-indigo-900 to-blue-900 p-6 rounded-2xl shadow-lg text-white flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="space-y-1 text-center md:text-left">
-                <span class="bg-blue-500/30 text-blue-200 text-xs font-semibold px-3 py-1 rounded-full border border-blue-400/30">Kontrol Akademik</span>
-                <h2 class="text-xl font-bold tracking-tight">Status Pengisian KRS Mahasiswa</h2>
+                <div class="flex items-center justify-center md:justify-start gap-2">
+                    <span class="bg-blue-500/30 text-blue-200 text-xs font-semibold px-3 py-1 rounded-full border border-blue-400/30">Kontrol Akademik</span>
+                    @if(isset($statusKrs) && $statusKrs == 1)
+                        <span class="bg-emerald-500/20 text-emerald-300 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-emerald-500/30">● Akses Terbuka</span>
+                    @else
+                        <span class="bg-rose-500/20 text-rose-300 text-xs font-semibold px-2.5 py-0.5 rounded-full border border-rose-500/30">● Akses Tertutup</span>
+                    @endif
+                </div>
+                <h2 class="text-xl font-bold tracking-tight mt-1">Status Pengisian KRS Mahasiswa</h2>
                 <p class="text-blue-100/80 text-sm">Buka atau tutup akses mahasiswa untuk melakukan tambah/edit Kartu Rencana Studi.</p>
             </div>
 
@@ -196,7 +226,7 @@
                         </div>
                     </div>
 
-                    <!-- Kolom Mata Kuliah & Tombol Aksi yang Terhubung Rapi -->
+                    <!-- Kolom Mata Kuliah & Tombol Aksi -->
                     <div class="flex-1 w-full bg-gray-50/70 p-3.5 rounded-xl border border-gray-100">
                         <div class="text-xs font-bold text-gray-400 uppercase mb-2">Mata Kuliah & Aksi:</div>
                         <div class="flex flex-wrap gap-2">
@@ -213,7 +243,7 @@
 
                 </div>
 
-                <!-- Modal Edit Matkul (Per Item) - Ditempatkan di dalam perulangan agar ID uniknya ter-render dengan benar -->
+                <!-- Modal Edit Matkul (Per Item) -->
                 @foreach($items as $item)
                 <div id="modalEditMatkul{{ $item->id }}" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50 backdrop-blur-xs">
                     <div class="bg-white p-6 rounded-2xl w-full max-w-md shadow-2xl">
@@ -265,7 +295,10 @@
                 </div>
                 <div>
                     <label class="block text-sm font-semibold mb-1">NIM / NIP</label>
-                    <input type="text" name="nim" class="w-full border rounded-lg px-3 py-2" placeholder="Masukkan NIM atau NIP (Opsional)">
+                    <input type="text" name="nim" class="w-full border rounded-lg px-3 py-2 @error('nim') border-red-500 focus:ring-red-400 @enderror" placeholder="Masukkan NIM atau NIP (Opsional)">
+                    @error('nim')
+                        <p class="text-xs text-rose-600 mt-1 font-semibold">{{ $message }}</p>
+                    @enderror
                 </div>
                 <div>
                     <label class="block text-sm font-semibold mb-1">Email</label>
@@ -327,32 +360,22 @@
         </div>
     </div>
 
-    <!-- Script untuk Modal & Live Search Dosen -->
+    <!-- Script Modal & Live Search -->
     <script>
         function toggleModal(modalID) {
             const modal = document.getElementById(modalID);
             if (modal) {
-                if (modal.classList.contains('hidden')) {
-                    modal.classList.remove('hidden');
-                } else {
-                    modal.classList.add('hidden');
-                }
+                modal.classList.toggle('hidden');
             }
         }
 
-        // Fitur Pencarian Dosen Secara Realtime
         document.getElementById('searchDosen').addEventListener('input', function() {
             let keyword = this.value.toLowerCase().trim();
             let rows = document.querySelectorAll('#tabelDosenMatkul div.row-dosen');
 
             rows.forEach(function(row) {
                 let namaDosen = row.getAttribute('data-dosen');
-
-                if (keyword === "" || (namaDosen && namaDosen.includes(keyword))) {
-                    row.style.display = ''; // Tampilkan baris jika cocok
-                } else {
-                    row.style.display = 'none'; // Sembunyikan baris jika tidak cocok
-                }
+                row.style.display = (keyword === "" || (namaDosen && namaDosen.includes(keyword))) ? '' : 'none';
             });
         });
     </script>

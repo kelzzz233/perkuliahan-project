@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 use App\Models\Krs;
 
 class DashboardController extends Controller
@@ -32,28 +33,41 @@ class DashboardController extends Controller
         return view('admin', compact('users', 'groupedMatkuls', 'statusKrs'));
     }
 
-    public function storeUser(Request $request)
-    {
-        $request->validate([
-            'nama' => 'required|string|max:255',
-            'nim' => 'nullable|string|max:50',
-            'email' => 'required|string|email|unique:pengguna,email',
-            'kata_sandi' => 'required|string|min:6',
-            'peran' => 'required|in:mahasiswa,dosen,admin',
-            'jurusan' => 'nullable|string|max:255',
-        ]);
+ public function storeUser(Request $request)
+{
+    // 1. Validasi Input
+    $validator = Validator::make($request->all(), [
+        'nama'       => 'required|string|max:255',
+        'nim'        => 'nullable|string|max:50|unique:pengguna,nim',
+        'email'      => 'required|string|email|unique:pengguna,email',
+        'kata_sandi' => 'required|string|min:6',
+        'peran'      => 'required|in:mahasiswa,dosen,admin',
+        'jurusan'    => 'nullable|string|max:255',
+    ], [
+        'nim.unique'   => 'NIM sudah terdaftar! Gunakan NIM yang lain.',
+        'email.unique' => 'Email sudah terdaftar! Gunakan email yang lain.',
+    ]);
 
-        Pengguna::create([
-            'nama' => $request->nama,
-            'nim' => $request->nim,
-            'email' => $request->email,
-            'kata_sandi' => Hash::make($request->kata_sandi),
-            'peran' => $request->peran,
-            'jurusan' => $request->jurusan ?? '-',
-        ]);
-
-        return redirect()->back()->with('success', 'Pengguna berhasil ditambahkan!');
+    // Jika validasi gagal
+    if ($validator->fails()) {
+        return redirect()->back()
+            ->withErrors($validator)
+            ->withInput()
+            ->with('error_nim', $validator->errors()->first('nim') ?? 'Gagal menambahkan pengguna. Periksa kembali form input.');
     }
+
+    // 2. Simpan Data jika lolos validasi
+    Pengguna::create([
+        'nama'       => $request->nama,
+        'nim'        => $request->nim,
+        'email'      => $request->email,
+        'kata_sandi' => Hash::make($request->kata_sandi),
+        'peran'      => $request->peran,
+        'jurusan'    => $request->jurusan ?? '-',
+    ]);
+
+    return redirect()->back()->with('success', 'Pengguna berhasil ditambahkan!');
+}
 
     public function updateUser(Request $request, $id)
     {
