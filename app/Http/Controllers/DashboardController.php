@@ -6,6 +6,7 @@ use App\Models\MataKuliah;
 use App\Models\Pengguna;
 use App\Models\Pengumpulan;
 use App\Models\Tugas;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
@@ -347,24 +348,33 @@ class DashboardController extends Controller
         return view('mahasiswa', compact('mahasiswa', 'tugas', 'semuaMatkul', 'krsList', 'totalSks'));
     }
 
-    public function kumpulTugas(Request $request)
-    {
-        $request->validate([
-            'id_tugas'   => 'required|exists:tugas,id',
-            'link_tugas' => 'required|url',
-        ], [
-            'link_tugas.required' => 'Link tugas wajib diisi.',
-            'link_tugas.url'      => 'Format link tidak valid. Harus diawali dengan http:// atau https://',
-        ]);
+   public function kumpulTugas(Request $request)
+{
+    $request->validate([
+        'id_tugas'   => 'required|exists:tugas,id',
+        'link_tugas' => 'required|url',
+    ], [
+        'link_tugas.required' => 'Link tugas wajib diisi.',
+        'link_tugas.url'      => 'Format link tidak valid. Harus diawali dengan http:// atau https://',
+    ]);
 
-        Pengumpulan::create([
-            'id_tugas'     => $request->id_tugas,
-            'id_siswa'     => Auth::guard('mahasiswa')->id(),
-            'jalur_berkas' => $request->link_tugas,
-        ]);
+    // 1. Ambil data tugas berdasarkan id_tugas yang dikirim
+    $tugas = Tugas::findOrFail($request->id_tugas);
 
-        return back()->with('sukses', 'Link tugas berhasil dikirim!');
+    // 2. Cek apakah waktu saat ini sudah melewati tenggat waktu tugas
+    if ($tugas->tenggat_waktu && Carbon::now()->greaterThan(Carbon::parse($tugas->tenggat_waktu))) {
+        return back()->with('error', 'Gagal! Waktu pengumpulan tugas sudah melewati tenggat waktu.');
     }
+
+    // 3. Simpan pengumpulan jika belum melewati tenggat waktu
+    Pengumpulan::create([
+        'id_tugas'     => $request->id_tugas,
+        'id_siswa'     => Auth::guard('mahasiswa')->id(),
+        'jalur_berkas' => $request->link_tugas,
+    ]);
+
+    return back()->with('sukses', 'Link tugas berhasil dikirim!');
+}
 
   public function storeKrs(Request $request)
 {
