@@ -105,7 +105,7 @@ class DashboardController extends Controller
         ->exists();
 
     if ($matkulSamaDosen) {
-        return back()->with('error', 'Dosen tersebut sudah mengampu mata kuliah ini!');
+        return back()->with('error', 'Dosen tersebut sudah mengajar mata kuliah ini!');
     }
 
     // 2. Cek apakah matkul ini sudah ada di dosen lain
