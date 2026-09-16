@@ -366,27 +366,40 @@ class DashboardController extends Controller
         return back()->with('sukses', 'Link tugas berhasil dikirim!');
     }
 
-    public function storeKrs(Request $request)
-    {
-        $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
-        $statusKrs = $settingKrs ? $settingKrs->value : 1;
+  public function storeKrs(Request $request)
+{
+    $settingKrs = DB::table('settings')->where('key', 'status_krs')->first();
+    $statusKrs = $settingKrs ? $settingKrs->value : 1;
 
-        if ($statusKrs == 0) {
-            return redirect()->back()->with('error', 'Maaf, periode pengisian KRS sedang ditutup oleh Admin.');
-        }
-
-        $request->validate([
-            'id_matkul' => 'required',
-        ]);
-
-        Krs::create([
-            'id_pengguna' => Auth::guard('mahasiswa')->id(),
-            'id_tugas'    => $request->id_matkul,
-            'semester'    => 1,
-        ]);
-
-        return redirect()->back()->with('sukses', 'Mata kuliah berhasil ditambahkan ke KRS!');
+    if ($statusKrs == 0) {
+        return redirect()->back()->with('error', 'Maaf, periode pengisian KRS sedang ditutup oleh Admin.');
     }
+
+    $request->validate([
+        'id_matkul' => 'required',
+    ]);
+
+    $studentId = Auth::guard('mahasiswa')->id();
+
+    // 1. Cek apakah mata kuliah ini sudah ada di KRS mahasiswa tersebut
+    $exists = Krs::where('id_pengguna', $studentId)
+                 ->where('id_tugas', $request->id_matkul) // Sesuaikan kolom ini jika memakai id_tugas / id_matkul
+                 ->exists();
+
+    if ($exists) {
+        // Kembali dengan pesan error (gunakan key 'error' agar dibaca oleh alert/notification Blade kamu)
+        return redirect()->back()->with('error', 'Mata kuliah ini sudah ada di KRS Anda!');
+    }
+
+    // 2. Simpan jika belum ada
+    Krs::create([
+        'id_pengguna' => $studentId,
+        'id_tugas'    => $request->id_matkul,
+        'semester'    => 1,
+    ]);
+
+    return redirect()->back()->with('sukses', 'Mata kuliah berhasil ditambahkan ke KRS!');
+}
 
     public function destroyKrs($id)
     {

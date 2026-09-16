@@ -59,7 +59,7 @@
             <form action="{{ route('admin.update-krs') }}" method="POST" class="flex items-center gap-3 bg-white/10 p-3 rounded-xl border border-white/10 backdrop-blur-md w-full md:w-auto justify-end">
                 @csrf
                 @method('PUT')
-                
+
                 <select name="status_krs" class="bg-gray-900 text-white border border-gray-700 rounded-lg px-4 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-blue-400">
                     <option value="1" {{ isset($statusKrs) && $statusKrs == 1 ? 'selected' : '' }}>🟢 Buka (Aktif)</option>
                     <option value="0" {{ isset($statusKrs) && $statusKrs == 0 ? 'selected' : '' }}>🔴 Tutup (Non-Aktif)</option>
@@ -161,30 +161,30 @@
                     <h2 class="text-lg font-bold text-gray-800">Daftar Mata Kuliah Berdasarkan Dosen</h2>
                     <p class="text-xs text-gray-500">Kelola dan ubah mata kuliah pengajar dengan mudah</p>
                 </div>
-                
+
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <!-- Kotak Pencarian Nama Dosen -->
                     <div class="relative w-full md:w-64">
                         <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">🔍</span>
                         <input type="text" id="searchDosen" placeholder="Cari nama dosen..." class="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-gray-50/50">
                     </div>
-                    
+
                     <button type="button" onclick="toggleModal('modalTambahMatkul')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition whitespace-nowrap shadow-sm shadow-blue-200">+ Tambah Matkul</button>
                 </div>
             </div>
 
             <!-- List Dosen dalam bentuk Card Modern -->
             <div class="grid grid-cols-1 gap-4" id="tabelDosenMatkul">
-                @php 
-                    $no = 1; 
+                @php
+                    $no = 1;
                 @endphp
                 @foreach($groupedMatkuls as $idPengajar => $items)
-                @php 
+                @php
                     $namaDosen = $items->first()->pengajar->nama ?? 'Tidak Ada Dosen';
                 @endphp
-                
+
                 <div class="row-dosen bg-white border border-gray-100 hover:border-blue-200 rounded-xl p-5 shadow-sm transition duration-200 flex flex-col md:flex-row justify-between items-start md:items-center gap-4" data-dosen="{{ strtolower($namaDosen) }}">
-                    
+
                     <!-- Kolom Info Dosen -->
                     <div class="flex items-center gap-4 min-w-[220px]">
                         <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 font-bold flex items-center justify-center text-base shadow-inner">
@@ -347,7 +347,7 @@
 
             rows.forEach(function(row) {
                 let namaDosen = row.getAttribute('data-dosen');
-                
+
                 if (keyword === "" || (namaDosen && namaDosen.includes(keyword))) {
                     row.style.display = ''; // Tampilkan baris jika cocok
                 } else {
